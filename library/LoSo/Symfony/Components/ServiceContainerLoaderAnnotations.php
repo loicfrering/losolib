@@ -7,6 +7,16 @@
 class LoSo_Symfony_Components_ServiceContainerLoaderAnnotations extends sfServiceContainerLoader
 {
     protected $_definitions = array();
+    protected $_annotations = array();
+
+    public function  __construct(sfServiceContainerBuilder $container = null)
+    {
+        $this->_annotations = array(
+            new LoSo_Symfony_Components_ServiceContainerLoaderAnnotationInject(),
+            new LoSo_Symfony_Components_ServiceContainerLoaderAnnotationValue()
+        );
+        parent::__construct($container);
+    }
     
     public function doLoad($path)
     {
@@ -61,12 +71,9 @@ class LoSo_Symfony_Components_ServiceContainerLoaderAnnotations extends sfServic
         try {
             $constructor = $r->getMethod('__construct');
             if(null !== $constructor) {
-                if($constructor->getDocblock()->hasTag('Inject')) {
-                    $parameters = $constructor->getParameters();
-                    Zend_Debug::dump($parameters, 'Constructor parameters:');
-                    foreach($parameters as $parameter) {
-                        $serviceReference = new sfServiceReference($this->_getInjectedServiceNameFromParameter($parameter));
-                        $definition->addArgument($serviceReference);
+                foreach($this->_annotations as $annotation) {
+                    if($constructor->getDocblock()->hasTag($annotation->getName())) {
+                        $annotation->reflectConstructor($constructor, $definition);
                     }
                 }
             }
@@ -85,10 +92,10 @@ class LoSo_Symfony_Components_ServiceContainerLoaderAnnotations extends sfServic
         foreach($properties as $property) {
             if($property->getDeclaringClass()->getName() == $r->getName()) {
                 $docblock = $property->getDocComment();
-                if($docblock && $docblock->hasTag('Inject')) {
-                    $propertyName = $this->_formatPropertyName($property->getName());
-                    $serviceReference = new sfServiceReference($this->_getInjectedServiceNameFromProperty($property));
-                    $definition->addMethodCall('set' . ucfirst($propertyName), array($serviceReference));
+                foreach($this->_annotations as $annotation) {
+                    if($docblock->hasTag($annotation->getName())) {
+                        $annotation->reflectProperty($property, $definition);
+                    }
                 }
             }
         }
@@ -100,9 +107,10 @@ class LoSo_Symfony_Components_ServiceContainerLoaderAnnotations extends sfServic
         foreach($methods as $method) {
             if($method->getDeclaringClass()->getName() == $r->getName() && strpos($method->getName(), 'set') === 0) {
                 try {
-                    if($method->getDocblock()->hasTag('Inject')) {
-                        $serviceReference = new sfServiceReference($this->_getInjectedServiceNameFromMethod($method));
-                        $definition->addMethodCall($method->getName(), array($serviceReference));
+                    foreach($this->_annotations as $annotation) {
+                        if($method->getDocblock()->hasTag($annotation->getName())) {
+                            $annotation->reflectMethod($method, $definition);
+                        }
                     }
                 }
                 catch(Zend_Reflection_Exception $e) {
@@ -123,46 +131,5 @@ class LoSo_Symfony_Components_ServiceContainerLoaderAnnotations extends sfServic
             return lcfirst(substr($className, $pos + 1));
         }
         return lcfirst($className);
-    }
-
-    protected function _getInjectedServiceNameFromParameter(Zend_Reflection_Parameter $p)
-    {
-        return $p->getName();
-    }
-
-    protected function _getInjectedServiceNameFromProperty(Zend_Reflection_Property $p)
-    {
-        $propertyName = $p->getName();
-        $injectTagDescription = $p->getDocComment()->getTag('Inject')->getDescription();
-        if(!empty($injectTagDescription)) {
-            return $injectTagDescription;
-        }
-        return $this->_formatPropertyName($propertyName);
-    }
-
-    protected function _getInjectedServiceNameFromMethod(Zend_Reflection_Method $m)
-    {
-        $methodName = $m->getName();
-        $injectTagDescription = $m->getDocblock()->getTag('Inject')->getDescription();
-        if(!empty($injectTagDescription)) {
-            return $injectTagDescription;
-        }
-        return $this->_formatMethodName($methodName);
-    }
-
-    protected function _formatPropertyName($propertyName)
-    {
-        if(strpos($propertyName, '_') === 0) {
-            return substr($propertyName, 1);
-        }
-        return $propertyName;
-    }
-
-    protected function _formatMethodName($methodName)
-    {
-        if(strpos($methodName, 'set') === 0) {
-            return lcfirst(substr($methodName, 3));
-        }
-        return lcfirst($methodName);
     }
 }
