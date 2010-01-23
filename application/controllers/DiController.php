@@ -20,6 +20,6 @@ class DiController extends Zend_Controller_Action
         $this->view->parameters = $container->getParameters();
         $this->view->serviceIds = $container->getServiceIds();
         $this->view->testServiceOut1 = $testService->test();
-        $this->view->testServiceOut2 = $this->_testService->test();
+        $this->view->testServiceOut2 = $this->_testService->test2();
     }
 }
