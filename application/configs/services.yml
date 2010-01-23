@@ -1,0 +1,11 @@
+parameters:
+  foo: bar
+  fooArray:
+    - true
+    - false
+    - 786
+    - value
+
+#services:
+#  testService:
+#    class: Default_Service_TestService

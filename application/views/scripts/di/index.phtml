@@ -1,0 +1,26 @@
+<h1>Dependency Injection with Symfony Dependency Injection Component</h1>
+<h2>Parameters</h2>
+<ul>
+    <?php foreach($this->parameters as $key => $value) : ?>
+        <li>
+            <?php Zend_Debug::dump($value, $key . ':') ?>
+        </li>
+    <?php endforeach; ?>
+</ul>
+<h2>Services</h2>
+<ul>
+    <?php foreach($this->serviceIds as $serviceId) : ?>
+        <li><?= $serviceId ?></li>
+    <?php endforeach; ?>
+</ul>
+<h2>TestService</h2>
+<ul>
+    <li>
+        From container:
+        <?php Zend_Debug::dump($this->testServiceOut1, 'TestService out:') ?>
+    </li>
+    <li>
+        From @Inject annotated property:
+        <?php Zend_Debug::dump($this->testServiceOut2, 'TestService out:') ?>
+    </li>
+</ul>
