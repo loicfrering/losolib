@@ -11,8 +11,15 @@ class LoSo_Symfony_Components_ServiceContainerFactory
     public static function getContainer(array $options)
     {
         self::$_container = new sfServiceContainerBuilder();
-        foreach($options['configFiles'] as $file) {
-            self::_loadConfigFile($file);
+        if(isset($options['configFiles'])) {
+            foreach($options['configFiles'] as $file) {
+                self::_loadConfigFile($file);
+            }
+        }
+        if(isset($options['configPaths'])) {
+            foreach($options['configPaths'] as $path) {
+                self::_loadPath($path);
+            }
         }
 
         return self::$_container;
@@ -36,8 +43,14 @@ class LoSo_Symfony_Components_ServiceContainerFactory
                 break;
 
             default:
-                throw new Atos_Symfony_Exception("Invalid configuration file provided; unknown config type '$suffix'");
+                throw new LoSo_Symfony_Exception("Invalid configuration file provided; unknown config type '$suffix'");
         }
         $loader->load($file);
+    }
+
+    protected static function _loadPath($path)
+    {
+        $loader = new LoSo_Symfony_Components_ServiceContainerLoaderAnnotations(self::$_container);
+        $loader->load($path);
     }
 }
