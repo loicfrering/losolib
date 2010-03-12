@@ -1,11 +1,11 @@
 <?php
 /**
- * Description of Default_Service_TestService
+ * Description of Application_Service_TestService
  *
  * @author Loïc Frering <loic.frering@gmail.com>
  * @Service
  */
-class Default_Service_TestService
+class Application_Service_TestService
 {
     /**
      * @var string

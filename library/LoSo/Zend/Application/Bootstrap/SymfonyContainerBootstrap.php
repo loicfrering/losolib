@@ -13,7 +13,8 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         if(null === $this->_container && $options['container']['type'] == 'symfony') {
             $autoloader = Zend_Loader_Autoloader::getInstance();
             $autoloader->pushAutoloader(array('LoSo_Symfony_Components_Autoloader', 'autoload'));
-            $container = LoSo_Symfony_Components_ServiceContainerFactory::getContainer($options['container']);
+            $sfContainerOptions = isset($options['container']['symfony']) ? $options['container']['symfony'] : array();
+            $container = LoSo_Symfony_Components_ServiceContainerFactory::getContainer($sfContainerOptions);
             $this->_container = $container;
             Zend_Controller_Action_HelperBroker::addHelper(new LoSo_Zend_Controller_Action_Helper_DependencyInjection());
         }
