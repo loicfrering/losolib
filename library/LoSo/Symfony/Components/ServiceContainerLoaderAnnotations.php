@@ -90,7 +90,7 @@ class LoSo_Symfony_Components_ServiceContainerLoaderAnnotations extends sfServic
     {
         $properties = $r->getProperties();
         foreach($properties as $property) {
-            if($property->getDeclaringClass()->getName() == $r->getName()) {
+            if($property->getDocComment() && $property->getDeclaringClass()->getName() == $r->getName()) {
                 $docblock = $property->getDocComment();
                 foreach($this->_annotations as $annotation) {
                     if($docblock->hasTag($annotation->getName())) {

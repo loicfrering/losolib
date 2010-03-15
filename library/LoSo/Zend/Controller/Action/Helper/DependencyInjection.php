@@ -22,7 +22,7 @@ class LoSo_Zend_Controller_Action_Helper_DependencyInjection extends Zend_Contro
 
         foreach($properties as $property) {
             if($property->getDeclaringClass()->getName() == get_class($actionController)) {
-                if($property->getDocComment()->hasTag('Inject')) {
+                if($property->getDocComment() && $property->getDocComment()->hasTag('Inject')) {
                     $injectTag = $property->getDocComment()->getTag('Inject');
                     $serviceName = $injectTag->getDescription();
                     if(empty($serviceName)) {
