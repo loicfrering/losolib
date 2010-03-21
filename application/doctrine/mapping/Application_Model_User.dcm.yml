@@ -1,0 +1,18 @@
+Application_Model_User:
+  type: entity
+  table: user
+  id:
+    id:
+      type: integer
+      generator:
+        strategy: AUTO
+  fields:
+    firstname:
+      type: string
+      length: 50
+    lastname:
+      type: string
+      length: 50
+    email:
+      type: string
+      length: 100
