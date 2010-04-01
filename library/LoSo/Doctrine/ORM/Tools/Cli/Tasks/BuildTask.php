@@ -156,6 +156,7 @@ class BuildTask extends AbstractTask
                 'dest' => APPLICATION_PATH . '/' . $entitiesDir
             );
             $this->_runDoctrineCliTask('orm:convert-mapping', $options);
+            $this->_processResourceNamespaces(APPLICATION_PATH . '/' . $entitiesDir);
         }
         
         if ($isBuildAll || $isBuildDb) {
@@ -167,6 +168,24 @@ class BuildTask extends AbstractTask
                 'class-dir' => APPLICATION_PATH . '/' . $entitiesDir
             );
             $this->_runDoctrineCliTask('orm:schema-tool', $options);
+        }
+    }
+
+        protected function _processResourceNamespaces($path)
+    {
+        $directoryIterator = new \DirectoryIterator($path);
+        foreach($directoryIterator as $fileInfo) {
+            if($fileInfo->isFile()) {
+                $suffix = strtolower(pathinfo($fileInfo->getPathname(), PATHINFO_EXTENSION));
+                if($suffix == 'php') {
+                    $path = $fileInfo->getPath();
+                    $fileName = $fileInfo->getBasename();
+                    if(strpos($fileName, '_') !== false) {
+                        $newFileName = substr($fileName, strrpos($fileName, '_') + 1);
+                        rename($path . DIRECTORY_SEPARATOR . $fileName, $path . DIRECTORY_SEPARATOR . $newFileName);
+                    }
+                }
+            }
         }
     }
 }
