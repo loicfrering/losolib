@@ -21,7 +21,7 @@ class LoSo_Symfony_Components_ServiceContainerLoaderAnnotations extends sfServic
     public function doLoad($path)
     {
         try {
-            $directoryIterator = new DirectoryIterator($path);
+            $directoryIterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
             foreach($directoryIterator as $fileInfo) {
                 if($fileInfo->isFile()) {
                     $suffix = strtolower(pathinfo($fileInfo->getPathname(), PATHINFO_EXTENSION));

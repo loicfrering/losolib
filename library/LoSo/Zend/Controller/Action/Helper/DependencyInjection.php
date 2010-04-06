@@ -31,6 +31,8 @@ class LoSo_Zend_Controller_Action_Helper_DependencyInjection extends Zend_Contro
                     if($this->_container->hasService($serviceName)) {
                         $property->setAccessible(true);
                         $property->setValue($actionController, $this->_container->getService($serviceName));
+                    } else {
+                        throw new LoSo_Exception('Unknown service "' . $serviceName . '" for controller "' . get_class($actionController) . '".');
                     }
                 }
             }
