@@ -1,0 +1,11 @@
+<h1>Users</h1>
+<ul>
+    <?php foreach($this->users as $user) : ?>
+        <li>
+            <?= $this->escape($user->getFirstname() . ' ' . $user->getLastname() . ' <' . $user->getEmail() . '>') ?> |
+            <a href="<?= $this->url(array('action' => 'hello', 'id' => $user->getId())) ?>" title="Say hello to <?= $user->getFirstname() . ' ' . $user->getLastname() ?>">Say hello</a>
+        </li>
+    <?php endforeach; ?>
+</ul>
+<hr />
+<?= $this->userForm ?>

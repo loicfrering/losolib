@@ -20,8 +20,6 @@ class LoSo_Zend_Application_Resource_Doctrine2 extends Zend_Application_Resource
     {
         $options = $this->getOptions();
 
-        Zend_Loader_Autoloader::getInstance()->registerNamespace('Doctrine');
-
         $this->_config = new Configuration;
 
         // Parameters
@@ -38,6 +36,7 @@ class LoSo_Zend_Application_Resource_Doctrine2 extends Zend_Application_Resource
 
         // Create EntityManager
         $em = EntityManager::create($connectionOptions, $this->_config);
+        $this->getBootstrap()->getContainer()->em = $em;
         return $em;
     }
 

@@ -1,0 +1,36 @@
+<?php
+class UserController extends Zend_Controller_Action
+{
+    /**
+     * @var Application_Service_Doctrine_UserService
+     * @Inject
+     */
+    protected $userService;
+
+    public function indexAction()
+    {
+        $userForm = new Application_Form_User();
+
+        if($this->getRequest()->isPost()) {
+            if($userForm->isValid($_POST)) {
+                $user = new Application_Model_User();
+                $user->setFirstname($userForm->firstname->getValue());
+                $user->setLastname($userForm->lastname->getValue());
+                $user->setEmail($userForm->email->getValue());
+                $this->userService->create($user);
+                $this->userService->flush();
+
+                $userForm->reset();
+            }
+        }
+
+        $this->view->users = $this->userService->findAll();
+        $this->view->userForm = $userForm;
+    }
+
+    public function helloAction()
+    {
+        $hello = $this->userService->sayHello($this->_getParam('id'));
+        $this->view->hello = $hello;
+    }
+}
