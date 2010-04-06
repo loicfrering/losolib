@@ -56,7 +56,7 @@ class BuildTask extends AbstractTask
 
     protected function _getContainer()
     {
-        return \Zend_Registry::get('container');
+        return \Zend_Registry::get(LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex());
     }
 
     /**
@@ -131,7 +131,8 @@ class BuildTask extends AbstractTask
      */
     public function run()
     {
-        if(\Zend_Registry::isRegistered('container') && ($container = \Zend_Registry::get('container')) instanceof \sfServiceContainer) {
+        if(\Zend_Registry::isRegistered(\LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex())
+            && ($container = \Zend_Registry::get(\LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex())) instanceof \sfServiceContainer) {
             $mappingDir = $container->getParameter('doctrine.orm.mapping_dir');
             $entitiesDir = $container->getParameter('doctrine.orm.entities_dir');
         }

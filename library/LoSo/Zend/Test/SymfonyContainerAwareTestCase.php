@@ -9,7 +9,8 @@ class LoSo_Zend_Test_SymfonyContainerAwareTestCase extends LoSo_Zend_Test_TestCa
     protected function setUp()
     {
         parent::setUp();
-        if(Zend_Registry::isRegistered('container') && ($container = Zend_Registry::get('container')) instanceof sfServiceContainer) {
+        if(Zend_Registry::isRegistered(LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex())
+            && ($container = Zend_Registry::get(LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex())) instanceof sfServiceContainer) {
             $r = new Zend_Reflection_Class($this);
             $properties = $r->getProperties();
 
