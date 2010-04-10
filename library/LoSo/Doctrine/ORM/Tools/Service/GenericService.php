@@ -15,6 +15,16 @@ class LoSo_Doctrine_ORM_Tools_Service_GenericService
         return $this->dao;
     }
 
+    public function populate($entity, $values)
+    {
+        foreach ($values as $key => $value) {
+            $method = 'set' . ucfirst($key);
+            if(method_exists($entity, $method)) {
+                $entity->$method($value);
+            }
+        }
+    }
+
     public function create($entity)
     {
         $this->getDao()->create($entity);

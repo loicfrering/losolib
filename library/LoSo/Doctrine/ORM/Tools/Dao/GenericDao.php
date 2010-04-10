@@ -11,6 +11,11 @@ abstract class LoSo_Doctrine_ORM_Tools_Dao_GenericDao extends \Doctrine\ORM\Enti
         parent::__construct($em, $metadata);
     }
 
+    public function getEntityName()
+    {
+        return $this->entityName;
+    }
+
     public function create($entity)
     {
         $this->_em->persist($entity);

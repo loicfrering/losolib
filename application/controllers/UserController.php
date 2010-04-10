@@ -14,9 +14,7 @@ class UserController extends Zend_Controller_Action
         if($this->getRequest()->isPost()) {
             if($userForm->isValid($_POST)) {
                 $user = new Application_Model_User();
-                $user->setFirstname($userForm->firstname->getValue());
-                $user->setLastname($userForm->lastname->getValue());
-                $user->setEmail($userForm->email->getValue());
+                $this->userService->populate($user, $userForm->getValues());
                 $this->userService->create($user);
                 $this->userService->flush();
 
