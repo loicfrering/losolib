@@ -16,7 +16,7 @@
  * @package    Zend_Feed_Writer
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Entry.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Entry.php 20326 2010-01-16 00:20:43Z padraic $
  */
  
 /**
@@ -33,6 +33,16 @@ require_once 'Zend/Feed/Writer/Extension/RendererAbstract.php';
 class Zend_Feed_Writer_Extension_WellFormedWeb_Renderer_Entry
     extends Zend_Feed_Writer_Extension_RendererAbstract
 {
+
+    /**
+     * Set to TRUE if a rendering method actually renders something. This
+     * is used to prevent premature appending of a XML namespace declaration
+     * until an element which requires it is actually appended.
+     *
+     * @var bool
+     */
+    protected $_called = false;
+    
     /**
      * Render entry
      * 
@@ -43,8 +53,10 @@ class Zend_Feed_Writer_Extension_WellFormedWeb_Renderer_Entry
         if (strtolower($this->getType()) == 'atom') {
             return; // RSS 2.0 only
         }
-        $this->_appendNamespaces();
         $this->_setCommentFeedLinks($this->_dom, $this->_base);
+        if ($this->_called) {
+            $this->_appendNamespaces();
+        }
     }
     
     /**
@@ -79,5 +91,6 @@ class Zend_Feed_Writer_Extension_WellFormedWeb_Renderer_Entry
                 $root->appendChild($flink);
             }
         }
+        $this->_called = true;
     }
 }

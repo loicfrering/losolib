@@ -17,9 +17,13 @@
  * @subpackage Renderer_Html
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Url.php 20270 2010-01-13 22:37:41Z kokx $
+ * @version    $Id: Url.php 20664 2010-01-26 18:46:20Z kokx $
  */
 
+/**
+ * @see Zend_Markup_Renderer_Html
+ */
+require_once 'Zend/Markup/Renderer/Html.php';
 /**
  * @see Zend_Markup_Renderer_Html_HtmlAbstract
  */
@@ -48,21 +52,26 @@ class Zend_Markup_Renderer_Html_Url extends Zend_Markup_Renderer_Html_HtmlAbstra
     public function convert(Zend_Markup_Token $token, $text)
     {
         if ($token->hasAttribute('url')) {
-            $url = $token->getAttribute('url');
+            $uri = $token->getAttribute('url');
         } else {
-            $url = $text;
+            $uri = $text;
         }
 
-        //if (subs)
+        if (!preg_match('/^([a-z][a-z+\-.]*):/i', $uri)) {
+            $uri = 'http://' . $uri;
+        }
 
         // check if the URL is valid
-        if (!Zend_Uri::check($url)) {
+        if (!Zend_Markup_Renderer_Html::isValidUri($uri)) {
             return $text;
         }
 
         $attributes = Zend_Markup_Renderer_Html::renderAttributes($token);
 
-        return "<a href=\"{$url}\"{$attributes}>{$text}</a>";
+        // run the URI through htmlentities
+        $uri = htmlentities($uri, ENT_QUOTES, Zend_Markup_Renderer_Html::getEncoding());
+
+        return "<a href=\"{$uri}\"{$attributes}>{$text}</a>";
     }
 
 }

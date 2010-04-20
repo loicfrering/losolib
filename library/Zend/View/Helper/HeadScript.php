@@ -16,7 +16,7 @@
  * @package    Zend_View
  * @subpackage Helper
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
- * @version    $Id: HeadScript.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: HeadScript.php 20364 2010-01-17 23:00:14Z mabe $
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -424,7 +424,7 @@ class Zend_View_Helper_HeadScript extends Zend_View_Helper_Placeholder_Container
         }
 
         $type = ($this->_autoEscape) ? $this->_escape($item->type) : $item->type;
-        $html  = $indent . '<script type="' . $type . '"' . $attrString . '>';
+        $html  = '<script type="' . $type . '"' . $attrString . '>';
         if (!empty($item->source)) {
               $html .= PHP_EOL . $indent . '    ' . $escapeStart . PHP_EOL . $item->source . $indent . '    ' . $escapeEnd . PHP_EOL . $indent;
         }
@@ -434,7 +434,9 @@ class Zend_View_Helper_HeadScript extends Zend_View_Helper_Placeholder_Container
             && !empty($item->attributes['conditional'])
             && is_string($item->attributes['conditional']))
         {
-            $html = '<!--[if ' . $item->attributes['conditional'] . ']> ' . $html . '<![endif]-->';
+            $html = $indent . '<!--[if ' . $item->attributes['conditional'] . ']> ' . $html . '<![endif]-->';
+        } else {
+            $html = $indent . $html;
         }
 
         return $html;

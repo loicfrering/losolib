@@ -17,8 +17,14 @@
  * @subpackage Resource
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Frontcontroller.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Frontcontroller.php 20886 2010-02-03 19:36:06Z matthew $
  */
+
+/**
+ * @see Zend_Application_Resource_ResourceAbstract
+ */
+require_once 'Zend/Application/Resource/ResourceAbstract.php';
+
 
 /**
  * Front Controller resource
@@ -89,9 +95,26 @@ class Zend_Application_Resource_Frontcontroller extends Zend_Application_Resourc
 
                 case 'plugins':
                     foreach ((array) $value as $pluginClass) {
+                    	$stackIndex = null;
+                    	if(is_array($pluginClass)) {
+                    	    $pluginClass = array_change_key_case($pluginClass, CASE_LOWER);
+                            if(isset($pluginClass['class']))
+                            {
+                                if(isset($pluginClass['stackindex'])) {
+                                    $stackIndex = $pluginClass['stackindex'];
+                                }
+
+                                $pluginClass = $pluginClass['class'];
+                            }
+                        }
+
                         $plugin = new $pluginClass();
-                        $front->registerPlugin($plugin);
+                        $front->registerPlugin($plugin, $stackIndex);
                     }
+                    break;
+
+                case 'returnresponse':
+                    $front->returnResponse((bool) $value);
                     break;
 
                 case 'throwexceptions':

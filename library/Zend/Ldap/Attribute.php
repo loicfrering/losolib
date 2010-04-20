@@ -16,7 +16,7 @@
  * @package    Zend_Ldap
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Attribute.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Attribute.php 21532 2010-03-17 12:18:23Z sgehrig $
  */
 
 /**
@@ -382,10 +382,13 @@ class Zend_Ldap_Attribute
         if (is_array($values)) {
             for ($i = 0; $i<count($values); $i++) {
                 $newVal = self::_valueFromLdapDateTime($values[$i]);
-                if (!is_null($newVal)) $values[$i] = $newVal;
+                if ($newVal !== null) $values[$i] = $newVal;
             }
         }
-        else $values = self::_valueFromLdapDateTime($values);
+        else {
+			$newVal = self::_valueFromLdapDateTime($values);
+			if ($newVal !== null) $values = $newVal;
+		}
         return $values;
     }
 

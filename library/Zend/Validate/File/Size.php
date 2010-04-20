@@ -16,7 +16,7 @@
  * @package   Zend_Validate
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
- * @version   $Id: Size.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version   $Id: Size.php 20455 2010-01-20 22:54:18Z thomas $
  */
 
 /**
@@ -48,7 +48,7 @@ class Zend_Validate_File_Size extends Zend_Validate_Abstract
     protected $_messageTemplates = array(
         self::TOO_BIG   => "Maximum allowed size for file '%value%' is '%max%' but '%size%' detected",
         self::TOO_SMALL => "Minimum expected size for file '%value%' is '%min%' but '%size%' detected",
-        self::NOT_FOUND => "The file '%value%' could not be found"
+        self::NOT_FOUND => "File '%value%' could not be found",
     );
 
     /**
@@ -280,7 +280,8 @@ class Zend_Validate_File_Size extends Zend_Validate_Abstract
         }
 
         // limited to 4GB files
-        $size = sprintf("%u", @filesize($value));
+        $size        = sprintf("%u", @filesize($value));
+        $this->_size = $size;
 
         // Check to see if it's smaller than min size
         $min = $this->getMin(true);

@@ -16,7 +16,7 @@
  * @package    Zend_Serializer
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id$
+ * @version    $Id: Serializer.php 20575 2010-01-24 17:48:27Z mabe $
  */
 
 /** @see Zend_Loader_PluginLoader */
@@ -64,11 +64,14 @@ class Zend_Serializer
             require_once 'Zend/Serializer/Exception.php';
             throw new Zend_Serializer_Exception('Can\'t load serializer adapter "'.$adapterName.'"', 0, $e);
         }
-        $adapterReflection = new ReflectionClass($adapterClass);
-        if (!$adapterReflection->implementsInterface('Zend_Serializer_Adapter_AdapterInterface')) {
+
+        // ZF-8842:
+        // check that the loaded class implements Zend_Serializer_Adapter_AdapterInterface without execute code
+        if (!in_array('Zend_Serializer_Adapter_AdapterInterface', class_implements($adapterClass))) {
             require_once 'Zend/Serializer/Exception.php';
             throw new Zend_Serializer_Exception('The serializer adapter class "'.$adapterClass.'" must implement Zend_Serializer_Adapter_AdapterInterface');
         }
+
         return new $adapterClass($opts);
     }
 
@@ -80,9 +83,7 @@ class Zend_Serializer
     public static function getAdapterLoader() 
     {
         if (self::$_adapterLoader === null) {
-            $loader = new Zend_Loader_PluginLoader();
-            $loader->addPrefixPath('Zend_Serializer_Adapter', dirname(__FILE__).'/Serializer/Adapter');
-            self::$_adapterLoader = $loader;
+            self::$_adapterLoader = self::_getDefaultAdapterLoader();
         }
         return self::$_adapterLoader;
     }
@@ -96,6 +97,29 @@ class Zend_Serializer
     public static function setAdapterLoader(Zend_Loader_PluginLoader $pluginLoader) 
     {
         self::$_adapterLoader = $pluginLoader;
+    }
+    
+    /**
+     * Resets the internal adapter plugin loader
+     *
+     * @return Zend_Loader_PluginLoader
+     */
+    public static function resetAdapterLoader()
+    {
+        self::$_adapterLoader = self::_getDefaultAdapterLoader();
+        return self::$_adapterLoader;
+    }
+    
+    /**
+     * Returns a default adapter plugin loader
+     *
+     * @return Zend_Loader_PluginLoader
+     */
+    protected static function _getDefaultAdapterLoader()
+    {
+        $loader = new Zend_Loader_PluginLoader();
+        $loader->addPrefixPath('Zend_Serializer_Adapter', dirname(__FILE__).'/Serializer/Adapter');
+        return $loader;
     }
 
     /**

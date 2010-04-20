@@ -16,7 +16,7 @@
  * @package    Zend_Test
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: ControllerTestCase.php 20256 2010-01-13 16:17:08Z matthew $
+ * @version    $Id: ControllerTestCase.php 20484 2010-01-21 18:13:31Z matthew $
  */
 
 /** @see PHPUnit_Framework_TestCase */
@@ -1141,7 +1141,9 @@ abstract class Zend_Test_PHPUnit_ControllerTestCase extends PHPUnit_Framework_Te
             if (isset($step['object'])
                 && $step['object'] instanceof PHPUnit_Framework_TestCase
             ) {
-                if (version_compare(PHPUnit_Runner_Version::id(), '3.3.3', 'lt')) {
+                if (version_compare(PHPUnit_Runner_Version::id(), '3.3.0', 'lt')) {
+                    break;
+                } elseif (version_compare(PHPUnit_Runner_Version::id(), '3.3.3', 'lt')) {
                     $step['object']->incrementAssertionCounter();
                 } else {
                     $step['object']->addToAssertionCount(1);

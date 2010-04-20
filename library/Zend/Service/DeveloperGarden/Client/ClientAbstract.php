@@ -17,7 +17,7 @@
  * @subpackage DeveloperGarden
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: ClientAbstract.php 20166 2010-01-09 19:00:17Z bkarwin $
+ * @version    $Id: ClientAbstract.php 20419 2010-01-19 13:20:12Z bate $
  */
 
 /**
@@ -358,7 +358,7 @@ abstract class Zend_Service_DeveloperGarden_Client_ClientAbstract
     {
         $r = new ReflectionClass(__CLASS__);
         foreach ($r->getConstants() as $k => $v) {
-            $s = split('_', $k, 2);
+            $s = explode('_', $k, 2);
             if (!isset(self::$_consts[$s[0]])) {
                 self::$_consts[$s[0]] = array();
             }

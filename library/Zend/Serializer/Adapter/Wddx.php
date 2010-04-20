@@ -17,7 +17,7 @@
  * @subpackage Adapter
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id$
+ * @version    $Id: Wddx.php 20575 2010-01-24 17:48:27Z mabe $
  */
 
 /** @see Zend_Serializer_Adapter_AdapterAbstract */
@@ -71,7 +71,7 @@ class Zend_Serializer_Adapter_Wddx extends Zend_Serializer_Adapter_AdapterAbstra
         $opts = $opts + $this->_options;
 
         if (isset($opts['comment']) && $opts['comment']) {
-            $wddx = wddx_serialize_value($value, (string)$this->_options['comment']);
+            $wddx = wddx_serialize_value($value, (string)$opts['comment']);
         } else {
             $wddx = wddx_serialize_value($value);
         }

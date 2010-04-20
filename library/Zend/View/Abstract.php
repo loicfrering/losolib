@@ -16,7 +16,7 @@
  * @package    Zend_View
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Abstract.php 20210 2010-01-12 02:06:34Z yoshida@zend.co.jp $
+ * @version    $Id: Abstract.php 20907 2010-02-04 18:08:01Z matthew $
  */
 
 /** @see Zend_Loader */
@@ -1020,9 +1020,9 @@ abstract class Zend_View_Abstract implements Zend_View_Interface
         foreach ((array) $path as $dir) {
             // attempt to strip any possible separator and
             // append the system directory separator
-            $dir = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $dir);
-            $dir = rtrim($dir, DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR)
-                 . DIRECTORY_SEPARATOR;
+            $dir  = rtrim($dir, '/');
+            $dir  = rtrim($dir, '\\');
+            $dir .= '/';
 
             switch ($type) {
                 case 'script':

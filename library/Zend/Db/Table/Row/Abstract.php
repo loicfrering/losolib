@@ -17,7 +17,7 @@
  * @subpackage Table
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Abstract.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Abstract.php 21102 2010-02-19 21:13:37Z ralph $
  */
 
 /**
@@ -293,13 +293,14 @@ abstract class Zend_Db_Table_Row_Abstract implements ArrayAccess
      }
 
      /**
-      * Does nothing
+      * Proxy to __unset
       * Required by the ArrayAccess implementation
       *
       * @param string $offset
       */
      public function offsetUnset($offset)
      {
+         return $this->__unset($offset);
      }
 
     /**
@@ -1050,7 +1051,7 @@ abstract class Zend_Db_Table_Row_Abstract implements ArrayAccess
         }
         $joinCond = implode(' AND ', $joinCond);
 
-        $select->from(array('i' => $interName), Zend_Db_Select::SQL_WILDCARD, $interSchema)
+        $select->from(array('i' => $interName), array(), $interSchema)
                ->joinInner(array('m' => $matchName), $joinCond, Zend_Db_Select::SQL_WILDCARD, $matchSchema)
                ->setIntegrityCheck(false);
 

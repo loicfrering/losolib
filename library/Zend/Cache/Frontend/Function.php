@@ -17,7 +17,7 @@
  * @subpackage Zend_Cache_Frontend
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Function.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Function.php 20379 2010-01-18 14:40:57Z mabe $
  */
 
 
@@ -89,14 +89,14 @@ class Zend_Cache_Frontend_Function extends Zend_Cache_Core
             // We do not have not cache
             return call_user_func_array($name, $parameters);
         }
+
         $id = $this->_makeId($name, $parameters);
-        if ($this->test($id)) {
+        if ( ($rs = $this->load($id)) && isset($rs[0], $rs[1])) {
             // A cache is available
-            $result = $this->load($id);
-            $output = $result[0];
-            $return = $result[1];
+            $output = $rs[0];
+            $return = $rs[1];
         } else {
-            // A cache is not available
+            // A cache is not available (or not valid for this frontend)
             ob_start();
             ob_implicit_flush(false);
             $return = call_user_func_array($name, $parameters);
@@ -105,6 +105,7 @@ class Zend_Cache_Frontend_Function extends Zend_Cache_Core
             $data = array($output, $return);
             $this->save($data, $id, $tags, $specificLifetime, $priority);
         }
+
         echo $output;
         return $return;
     }

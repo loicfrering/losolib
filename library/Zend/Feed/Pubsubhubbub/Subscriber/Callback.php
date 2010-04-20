@@ -105,6 +105,8 @@ class Zend_Feed_Pubsubhubbub_Subscriber_Callback
             && $this->_hasValidVerifyToken(null, false)
             && ($this->_getHeader('Content-Type') == 'application/atom+xml'
                 || $this->_getHeader('Content-Type') == 'application/rss+xml'
+                || $this->_getHeader('Content-Type') == 'application/xml'
+                || $this->_getHeader('Content-Type') == 'text/xml'
                 || $this->_getHeader('Content-Type') == 'application/rdf+xml')
         ) {
             $this->setFeedUpdate($this->_getRawBody());
@@ -117,6 +119,9 @@ class Zend_Feed_Pubsubhubbub_Subscriber_Callback
             $data = $this->_currentSubscriptionData;
             $this->getHttpResponse()->setBody($httpGetData['hub_challenge']);
             $data['subscription_state'] = Zend_Feed_Pubsubhubbub::SUBSCRIPTION_VERIFIED;
+            if (isset($httpGetData['hub_lease_seconds'])) {
+                $data['lease_seconds'] = $httpGetData['hub_lease_seconds'];
+            }
             $this->getStorage()->setSubscription($data);
         /**
          * Hey, C'mon! We tried everything else!

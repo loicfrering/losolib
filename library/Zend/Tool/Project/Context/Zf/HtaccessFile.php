@@ -17,7 +17,7 @@
  * @subpackage Framework
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: HtaccessFile.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: HtaccessFile.php 20969 2010-02-07 18:20:02Z ralph $
  */
 
 /**
@@ -62,7 +62,6 @@ class Zend_Tool_Project_Context_Zf_HtaccessFile extends Zend_Tool_Project_Contex
     public function getContents()
     {
         $output = <<<EOS
-SetEnv APPLICATION_ENV development
 
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} -s [OR]

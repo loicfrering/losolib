@@ -16,7 +16,7 @@
  * @package    Zend_Validate
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Alnum.php 20182 2010-01-10 21:12:01Z thomas $
+ * @version    $Id: Alnum.php 20442 2010-01-20 15:15:40Z matthew $
  */
 
 /**
@@ -40,7 +40,7 @@ class Zend_Validate_Alnum extends Zend_Validate_Abstract
      * Whether to allow white space characters; off by default
      *
      * @var boolean
-     * @depreciated
+     * @deprecated
      */
     public $allowWhiteSpace;
 
@@ -58,8 +58,8 @@ class Zend_Validate_Alnum extends Zend_Validate_Abstract
      */
     protected $_messageTemplates = array(
         self::INVALID      => "Invalid type given, value should be float, string, or integer",
-        self::NOT_ALNUM    => "'%value%' has not only alphabetic and digit characters",
-        self::STRING_EMPTY => "'%value%' is an empty string"
+        self::NOT_ALNUM    => "'%value%' contains characters which are non alphabetic and no digits",
+        self::STRING_EMPTY => "'%value%' is an empty string",
     );
 
     /**

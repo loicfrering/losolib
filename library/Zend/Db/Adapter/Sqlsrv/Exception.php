@@ -17,7 +17,7 @@
  * @subpackage Adapter
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Exception.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Exception.php 20629 2010-01-25 21:17:23Z ralph $
  */
 
 /**
@@ -58,6 +58,6 @@ class Zend_Db_Adapter_Sqlsrv_Exception extends Zend_Db_Adapter_Exception
             $code    = (int)    $message['code'];
             $message = (string) $message['message'];
        }
-       parent::__construct($message, new Exception($message, $code));
+       parent::__construct($message, $code, new Exception($message, $code));
    }
 }

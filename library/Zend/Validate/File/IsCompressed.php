@@ -16,7 +16,7 @@
  * @package   Zend_Validate
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
- * @version   $Id: IsCompressed.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version   $Id: IsCompressed.php 21138 2010-02-22 22:37:11Z thomas $
  */
 
 /**
@@ -45,9 +45,9 @@ class Zend_Validate_File_IsCompressed extends Zend_Validate_File_MimeType
      * @var array Error message templates
      */
     protected $_messageTemplates = array(
-        self::FALSE_TYPE   => "The file '%value%' is not compressed, '%type%' detected",
-        self::NOT_DETECTED => "The mimetype of file '%value%' has not been detected",
-        self::NOT_READABLE => "The file '%value%' can not be read"
+        self::FALSE_TYPE   => "File '%value%' is not compressed, '%type%' detected",
+        self::NOT_DETECTED => "The mimetype of file '%value%' could not been detected",
+        self::NOT_READABLE => "File '%value%' can not be read",
     );
 
     /**
@@ -60,28 +60,64 @@ class Zend_Validate_File_IsCompressed extends Zend_Validate_File_MimeType
     {
         if ($mimetype instanceof Zend_Config) {
             $mimetype = $mimetype->toArray();
-        } else if (empty($mimetype)) {
-            $mimetype = array(
-                'application/x-tar',
-                'application/x-cpio',
-                'application/x-debian-package',
-                'application/x-archive',
-                'application/x-arc',
-                'application/x-arj',
-                'application/x-lharc',
-                'application/x-lha',
-                'application/x-rar',
-                'application/zip',
-                'application/zoo',
-                'application/x-eet',
-                'application/x-java-pack200',
-                'application/x-compress',
-                'application/x-gzip',
-                'application/x-bzip2'
-            );
         }
 
-        $this->setMimeType($mimetype);
+        $temp    = array();
+        // http://de.wikipedia.org/wiki/Liste_von_Dateiendungen
+            $default = array(
+            'application/arj',
+            'application/gnutar',
+            'application/lha',
+            'application/lzx',
+            'application/vnd.ms-cab-compressed',
+            'application/x-ace-compressed',
+            'application/x-arc',
+            'application/x-archive',
+            'application/x-arj',
+            'application/x-bzip',
+            'application/x-bzip2',
+            'application/x-cab-compressed',
+            'application/x-compress',
+            'application/x-compressed',
+            'application/x-cpio',
+            'application/x-debian-package',
+            'application/x-eet',
+            'application/x-gzip',
+            'application/x-java-pack200',
+            'application/x-lha',
+            'application/x-lharc',
+            'application/x-lzh',
+            'application/x-lzma',
+            'application/x-lzx',
+            'application/x-rar',
+            'application/x-sit',
+            'application/x-stuffit',
+            'application/x-tar',
+            'application/zip',
+            'application/zoo',
+            'multipart/x-gzip',
+        );
+
+        if (is_array($mimetype)) {
+            $temp = $mimetype;
+            if (array_key_exists('magicfile', $temp)) {
+                unset($temp['magicfile']);
+            }
+
+            if (array_key_exists('headerCheck', $temp)) {
+                unset($temp['headerCheck']);
+            }
+
+            if (empty($temp)) {
+                $mimetype += $default;
+            }
+        }
+
+        if (empty($mimetype)) {
+            $mimetype = $default;
+        }
+
+        parent::__construct($mimetype);
     }
 
     /**

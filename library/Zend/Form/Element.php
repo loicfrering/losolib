@@ -18,13 +18,13 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/** Zend_Filter */
+/** @see Zend_Filter */
 require_once 'Zend/Filter.php';
 
-/** Zend_Form */
+/** @see Zend_Form */
 require_once 'Zend/Form.php';
 
-/** Zend_Validate_Interface */
+/** @see Zend_Validate_Interface */
 require_once 'Zend/Validate/Interface.php';
 
 /**
@@ -35,7 +35,7 @@ require_once 'Zend/Validate/Interface.php';
  * @subpackage Element
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Element.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Element.php 21649 2010-03-25 21:49:06Z rob $
  */
 class Zend_Form_Element implements Zend_Validate_Interface
 {
@@ -215,10 +215,10 @@ class Zend_Form_Element implements Zend_Validate_Interface
 
     /**
      * Is a specific decorator being rendered via the magic renderDecorator()?
-     * 
+     *
      * This is to allow execution of logic inside the render() methods of child
      * elements during the magic call while skipping the parent render() method.
-     * 
+     *
      * @var bool
      */
     protected $_isPartialRendering = false;
@@ -232,6 +232,7 @@ class Zend_Form_Element implements Zend_Validate_Interface
      * - Zend_Config: Zend_Config with options for configuring element
      *
      * @param  string|array|Zend_Config $spec
+     * @param  array|Zend_Config $options
      * @return void
      * @throws Zend_Form_Exception if no element name after initialization
      */
@@ -411,6 +412,16 @@ class Zend_Form_Element implements Zend_Validate_Interface
             return Zend_Form::getDefaultTranslator();
         }
         return $this->_translator;
+    }
+    
+    /**
+     * Does this element have its own specific translator?
+     * 
+     * @return bool
+     */
+    public function hasTranslator()
+    {
+        return (bool)$this->_translator;
     }
 
     /**
@@ -1325,11 +1336,14 @@ class Zend_Form_Element implements Zend_Validate_Interface
         $this->_messages = array();
         $this->_errors   = array();
         $result          = true;
-        $translator      = $this->getTranslator();
         $isArray         = $this->isArray();
         foreach ($this->getValidators() as $key => $validator) {
             if (method_exists($validator, 'setTranslator')) {
-                $validator->setTranslator($translator);
+                $validator->setTranslator($this->getTranslator());
+            }
+
+            if (method_exists($validator, 'setDisableTranslator')) {
+                $validator->setDisableTranslator($this->translatorIsDisabled());
             }
 
             if ($isArray && is_array($value)) {
@@ -2063,15 +2077,15 @@ class Zend_Form_Element implements Zend_Validate_Interface
             throw new Zend_Form_Exception(sprintf('Validator instance already exists for validator "%s"', $origName));
         }
 
+        $messages = false;
+        if (isset($validator['options']['messages'])) {
+            $messages = $validator['options']['messages'];
+            unset($validator['options']['messages']);
+        }
+
         if (empty($validator['options'])) {
             $instance = new $name;
         } else {
-            $messages = false;
-            if (isset($validator['options']['messages'])) {
-                $messages = $validator['options']['messages'];
-                unset($validator['options']['messages']);
-            }
-
             $r = new ReflectionClass($name);
             if ($r->hasMethod('__construct')) {
                 $numeric = false;
@@ -2093,16 +2107,15 @@ class Zend_Form_Element implements Zend_Validate_Interface
             } else {
                 $instance = $r->newInstance();
             }
-
-            if ($messages) {
-                if (is_array($messages)) {
-                    $instance->setMessages($messages);
-                } elseif (is_string($messages)) {
-                    $instance->setMessage($messages);
-                }
-            }
         }
 
+        if ($messages) {
+            if (is_array($messages)) {
+                $instance->setMessages($messages);
+            } elseif (is_string($messages)) {
+                $instance->setMessage($messages);
+            }
+        }
         $instance->zfBreakChainOnFailure = $validator['breakChainOnFailure'];
 
         if ($origName != $name) {

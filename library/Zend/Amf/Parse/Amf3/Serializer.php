@@ -17,7 +17,7 @@
  * @subpackage Parse_Amf3
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Serializer.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Serializer.php 20392 2010-01-18 18:34:23Z stas $
  */
 
 /** Zend_Amf_Constants */
@@ -323,9 +323,8 @@ class Zend_Amf_Parse_Amf3_Serializer extends Zend_Amf_Parse_Serializer
      */
     public function writeArray(array $array)
     {
-        if($this->writeObjectReference($array)){
-            return $this;
-        }
+	// arrays aren't reference here but still counted
+        $this->_referenceObjects[] = $array;
 
         // have to seperate mixed from numberic keys.
         $numeric = array();
@@ -364,7 +363,8 @@ class Zend_Amf_Parse_Amf3_Serializer extends Zend_Amf_Parse_Serializer
      * @param mixed $object object to check for reference
      * @return Boolean true, if the reference was written, false otherwise
      */
-    protected function writeObjectReference($object){
+    protected function writeObjectReference($object)
+    {
         $ref = array_search($object, $this->_referenceObjects,true);
         //quickly handle object references
         if($ref !== false){

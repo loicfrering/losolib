@@ -16,7 +16,7 @@
  * @package    Zend_Filter
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: StringToLower.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: StringToLower.php 20912 2010-02-04 19:44:42Z thomas $
  */
 
 /**
@@ -58,7 +58,7 @@ class Zend_Filter_StringToLower implements Zend_Filter_Interface
         }
 
         if (array_key_exists('encoding', $options)) {
-            $this->setEncoding($options);
+            $this->setEncoding($options['encoding']);
         }
     }
 
@@ -88,7 +88,7 @@ class Zend_Filter_StringToLower implements Zend_Filter_Interface
             }
 
             $encoding = (string) $encoding;
-            if (!in_array($encoding, mb_list_encodings())) {
+            if (!in_array(strtolower($encoding), array_map('strtolower', mb_list_encodings()))) {
                 require_once 'Zend/Filter/Exception.php';
                 throw new Zend_Filter_Exception("The given encoding '$encoding' is not supported by mbstring");
             }

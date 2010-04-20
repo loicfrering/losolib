@@ -16,13 +16,15 @@
  * @package    Zend_Feed_Writer
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Atom.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Atom.php 20507 2010-01-21 22:21:07Z padraic $
  */
 
 /**
  * @see Zend_Feed_Writer_Renderer_RendererAbstract
  */
 require_once 'Zend/Feed/Writer/Renderer/RendererAbstract.php';
+
+require_once 'Zend/Feed/Writer/Renderer/Feed/Atom/Source.php';
 
 /**
  * @category   Zend
@@ -57,6 +59,7 @@ class Zend_Feed_Writer_Renderer_Entry_Atom
         $entry = $this->_dom->createElementNS(Zend_Feed_Writer::NAMESPACE_ATOM_10, 'entry');
         $this->_dom->appendChild($entry);
         
+        $this->_setSource($this->_dom, $entry);
         $this->_setTitle($this->_dom, $entry);
         $this->_setDescription($this->_dom, $entry);
         $this->_setDateCreated($this->_dom, $entry);
@@ -313,11 +316,43 @@ class Zend_Feed_Writer_Renderer_Entry_Atom
                 return;
             }
         }
+        if (!$content) {
+            return;
+        }
         $element = $dom->createElement('content');
-        $element->setAttribute('type', 'html');
-        $cdata = $dom->createCDATASection($content);
-        $element->appendChild($cdata);
+        $element->setAttribute('type', 'xhtml');
+        $xhtmlElement = $this->_loadXhtml($content);
+        $xhtml = $dom->importNode($xhtmlElement, true);
+        $element->appendChild($xhtml);
         $root->appendChild($element);
+    }
+    
+    /**
+     * Load a HTML string and attempt to normalise to XML
+     */
+    protected function _loadXhtml($content)
+    {
+        $xhtml = '';
+        if (class_exists('tidy', false)) {
+            $tidy = new tidy;
+            $config = array(
+                'output-xhtml' => true,
+                'show-body-only' => true
+            );
+            $encoding = str_replace('-', '', $this->getEncoding());
+            $tidy->parseString($content, $config, $encoding);
+            $tidy->cleanRepair();
+            $xhtml = (string) $tidy;
+        } else {
+            $xhtml = $content;
+        }
+        $xhtml = preg_replace(array(
+            "/(<[\/]?)([a-zA-Z]+)/"   
+        ), '$1xhtml:$2', $xhtml);
+        $dom = new DOMDocument('1.0', $this->getEncoding());
+        $dom->loadXML('<xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml">'
+            . $xhtml . '</xhtml:div>');
+        return $dom->documentElement;
     }
     
     /**
@@ -346,5 +381,25 @@ class Zend_Feed_Writer_Renderer_Entry_Atom
             }
             $root->appendChild($category);
         }
+    }
+    
+    /**
+     * Append Source element (Atom 1.0 Feed Metadata)
+     *
+     * @param  DOMDocument $dom 
+     * @param  DOMElement $root 
+     * @return void
+     */
+    protected function _setSource(DOMDocument $dom, DOMElement $root)
+    {
+        $source = $this->getDataContainer()->getSource();
+        if (!$source) {
+            return;
+        }
+        $renderer = new Zend_Feed_Writer_Renderer_Feed_Atom_Source($source);
+        $renderer->setType($this->getType());
+        $element = $renderer->render()->getElement();
+        $imported = $dom->importNode($element, true);
+        $root->appendChild($imported); 
     }
 }

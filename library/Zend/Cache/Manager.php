@@ -22,6 +22,9 @@
 /** @see Zend_Cache_Exception */
 require_once 'Zend/Cache/Exception.php';
 
+/** @see Zend_Cache */
+require_once 'Zend/Cache.php';
+
 /**
  * @category   Zend
  * @package    Zend_Cache
@@ -34,6 +37,11 @@ class Zend_Cache_Manager
      * Constant holding reserved name for default Page Cache
      */
     const PAGECACHE = 'page';
+    
+    /**
+     * Constant holding reserved name for default Page Tag Cache
+     */
+    const PAGETAGCACHE = 'pagetag';
 
     /**
      * Array of caches stored by the Cache Manager instance
@@ -78,7 +86,7 @@ class Zend_Cache_Manager
         // Static Page HTML Cache
         'page' => array(
             'frontend' => array(
-                'name'    => 'Output',
+                'name'    => 'Capture',
                 'options' => array(
                     'ignore_user_abort' => true,
                 ),
@@ -91,17 +99,19 @@ class Zend_Cache_Manager
             ),
         ),
         // Tag Cache
-        'tagCache' => array(
+        'pagetag' => array(
             'frontend' => array(
                 'name'    => 'Core',
                 'options' => array(
                     'automatic_serialization' => true,
+                    'lifetime' => null
                 ),
             ),
             'backend' => array(
                 'name'    => 'File',
                 'options' => array(
                     'cache_dir' => '../cache',
+                    'cache_file_umask' => 0644
                 ),
             ),
         ),
@@ -155,13 +165,13 @@ class Zend_Cache_Manager
                 || !$this->_optionTemplates[$name]['backend']['options']['tag_cache'] instanceof Zend_Cache_Core)
             ) {
                 $this->_optionTemplates[$name]['backend']['options']['tag_cache']
-                    = $this->getCache('tagCache');
+                    = $this->getCache(self::PAGETAGCACHE );
             }
             $this->_caches[$name] = Zend_Cache::factory(
                 $this->_optionTemplates[$name]['frontend']['name'],
                 $this->_optionTemplates[$name]['backend']['name'],
-                $this->_optionTemplates[$name]['frontend']['options'],
-                $this->_optionTemplates[$name]['backend']['options']
+                isset($this->_optionTemplates[$name]['frontend']['options']) ? $this->_optionTemplates[$name]['frontend']['options'] : array(),
+                isset($this->_optionTemplates[$name]['backend']['options']) ? $this->_optionTemplates[$name]['backend']['options'] : array()
             );
             return $this->_caches[$name];
         }
@@ -185,6 +195,7 @@ class Zend_Cache_Manager
                 . ' an associative array or instance of Zend_Config');
         }
         $this->_optionTemplates[$name] = $options;
+        return $this;
     }
 
     /**

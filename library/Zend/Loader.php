@@ -16,7 +16,7 @@
  * @package    Zend_Loader
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Loader.php 20248 2010-01-12 21:51:03Z matthew $
+ * @version    $Id: Loader.php 20990 2010-02-08 18:20:39Z matthew $
  */
 
 /**
@@ -173,11 +173,51 @@ class Zend_Loader
      */
     public static function isReadable($filename)
     {
-        if (!$fh = @fopen($filename, 'r', true)) {
-            return false;
+        if (is_readable($filename)) {
+            // Return early if the filename is readable without needing the 
+            // include_path
+            return true;
         }
-        @fclose($fh);
-        return true;
+
+        foreach (self::explodeIncludePath() as $path) {
+            if ($path == '.') {
+                if (is_readable($filename)) {
+                    return true;
+                }
+                continue;
+            }
+            $file = $path . '/' . $filename;
+            if (is_readable($file)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Explode an include path into an array
+     *
+     * If no path provided, uses current include_path. Works around issues that
+     * occur when the path includes stream schemas.
+     * 
+     * @param  string|null $path 
+     * @return array
+     */
+    public static function explodeIncludePath($path = null)
+    {
+        if (null === $path) {
+            $path = get_include_path();
+        }
+
+        if (PATH_SEPARATOR == ':') {
+            // On *nix systems, include_paths which include paths with a stream 
+            // schema cannot be safely explode'd, so we have to be a bit more
+            // intelligent in the approach.
+            $paths = preg_split('#:(?!//)#', $path);
+        } else {
+            $paths = explode(PATH_SEPARATOR, $path);
+        }
+        return $paths;
     }
 
     /**

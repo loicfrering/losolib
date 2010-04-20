@@ -16,7 +16,7 @@
  * @package    Zend_Json
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Json.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Json.php 20616 2010-01-25 19:56:04Z matthew $
  */
 
 /**
@@ -71,8 +71,32 @@ class Zend_Json
      */
     public static function decode($encodedValue, $objectDecodeType = Zend_Json::TYPE_ARRAY)
     {
+        $encodedValue = (string) $encodedValue;
         if (function_exists('json_decode') && self::$useBuiltinEncoderDecoder !== true) {
-            return json_decode($encodedValue, $objectDecodeType);
+            $decode = json_decode($encodedValue, $objectDecodeType);
+
+            // php < 5.3
+            if (!function_exists('json_last_error')) {
+                if ($decode === $encodedValue) {
+                    require_once 'Zend/Json/Exception.php';
+                    throw new Zend_Json_Exception('Decoding failed');
+                }
+            // php >= 5.3
+            } elseif (($jsonLastErr = json_last_error()) != JSON_ERROR_NONE) {
+                require_once 'Zend/Json/Exception.php';
+                switch ($jsonLastErr) {
+                    case JSON_ERROR_DEPTH:
+                        throw new Zend_Json_Exception('Decoding failed: Maximum stack depth exceeded');
+                    case JSON_ERROR_CTRL_CHAR:
+                        throw new Zend_Json_Exception('Decoding failed: Unexpected control character found');
+                    case JSON_ERROR_SYNTAX:
+                        throw new Zend_Json_Exception('Decoding failed: Syntax error');
+                    default:
+                        throw new Zend_Json_Exception('Decoding failed');
+                }
+            }
+
+            return $decode;
         }
 
         require_once 'Zend/Json/Decoder.php';

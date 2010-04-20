@@ -16,7 +16,7 @@
  * @package   Zend_Validate
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
- * @version   $Id: WordCount.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version   $Id: WordCount.php 20358 2010-01-17 19:03:49Z thomas $
  */
 
 /**
@@ -48,7 +48,7 @@ class Zend_Validate_File_WordCount extends Zend_Validate_File_Count
     protected $_messageTemplates = array(
         self::TOO_MUCH => "Too much words, maximum '%max%' are allowed but '%count%' were counted",
         self::TOO_LESS => "Too less words, minimum '%min%' are expected but '%count%' were counted",
-        self::NOT_FOUND => "The file '%value%' could not be found"
+        self::NOT_FOUND => "File '%value%' could not be found",
     );
 
     /**

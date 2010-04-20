@@ -17,8 +17,14 @@
  * @subpackage Resource
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: View.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: View.php 20816 2010-02-01 21:13:54Z freak $
  */
+
+/**
+ * @see Zend_Application_Resource_ResourceAbstract
+ */
+require_once 'Zend/Application/Resource/ResourceAbstract.php';
+
 
 /**
  * Resource for settings view options
@@ -60,7 +66,12 @@ class Zend_Application_Resource_View extends Zend_Application_Resource_ResourceA
     public function getView()
     {
         if (null === $this->_view) {
-            $this->_view = new Zend_View($this->getOptions());
+            $options = $this->getOptions();
+            $this->_view = new Zend_View($options);
+
+            if(isset($options['doctype'])) {
+                $this->_view->doctype()->setDoctype(strtoupper($options['doctype']));
+            }
         }
         return $this->_view;
     }

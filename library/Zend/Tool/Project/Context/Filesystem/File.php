@@ -17,7 +17,7 @@
  * @subpackage Framework
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: File.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: File.php 20971 2010-02-07 18:22:38Z ralph $
  */
 
 /**
@@ -39,6 +39,12 @@ require_once 'Zend/Tool/Project/Context/Filesystem/Abstract.php';
 class Zend_Tool_Project_Context_Filesystem_File extends Zend_Tool_Project_Context_Filesystem_Abstract
 {
 
+    protected $_fileOnlyContext = null;
+    
+    protected $_filesystemName = null;
+    
+    protected $_content = null;
+    
     /**
      * getName()
      * 
@@ -56,11 +62,34 @@ class Zend_Tool_Project_Context_Filesystem_File extends Zend_Tool_Project_Contex
      */
     public function init()
     {
-        // @todo check to ensure that this 'file' resource has no children
+        if ($this->_resource->hasAttribute('filesystemName')) {
+            $this->_filesystemName = $this->_resource->getAttribute('filesystemName');
+        }
+        
+        // check to see if this file is 
+        if ($this->getName() == 'file') {
+            $this->_initFileOnlyContext();
+        }
+        
+        // @potential-todo check to ensure that this 'file' resource has no children
         parent::init();
         return $this;
     }
 
+    /**
+     * getPersistentAttributes()
+     *
+     * @return array
+     */
+    public function getPersistentAttributes()
+    {
+        $returnAttrs = array();
+        if ($this->_filesystemName !== null) {
+            $returnAttrs['filesystemName'] = $this->_filesystemName;
+        }
+        return $returnAttrs;
+    }
+    
     /**
      * setResource()
      *
@@ -71,6 +100,16 @@ class Zend_Tool_Project_Context_Filesystem_File extends Zend_Tool_Project_Contex
         $this->_resource = $resource;
         $this->_resource->setAppendable(false);
         return $this;
+    }
+    
+    /**
+     * getResource()
+     * 
+     * @return Zend_Tool_Project_Profile_Resource
+     */
+    public function getResource()
+    {
+        return $this->_resource;
     }
 
     /**
@@ -116,7 +155,20 @@ class Zend_Tool_Project_Context_Filesystem_File extends Zend_Tool_Project_Contex
      */
     public function getContents()
     {
-        return null;
+        return $this->_content;
     }
 
+    protected function _initFileOnlyContext()
+    {
+        if ($this->_resource->hasAttribute('defaultContentCallback')) {
+            $contentFunc = $this->_resource->getAttribute('defaultContentCallback');
+            if (is_callable($contentFunc)) {
+                $this->_content = call_user_func_array($contentFunc, array($this));
+            }
+        }
+        if ($this->_filesystemName == null) {
+            $this->_filesystemName = 'file.txt';
+        }
+    }
+    
 }

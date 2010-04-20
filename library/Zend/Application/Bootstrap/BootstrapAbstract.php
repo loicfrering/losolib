@@ -17,7 +17,7 @@
  * @subpackage Bootstrap
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: BootstrapAbstract.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: BootstrapAbstract.php 20988 2010-02-08 16:44:44Z matthew $
  */
 
 /**
@@ -433,6 +433,9 @@ abstract class Zend_Application_Bootstrap_BootstrapAbstract
         if (($application instanceof Zend_Application)
             || ($application instanceof Zend_Application_Bootstrap_Bootstrapper)
         ) {
+            if ($application === $this) {
+                throw new Zend_Application_Bootstrap_Exception('Cannot set application to same object; creates recursion');
+            }
             $this->_application = $application;
         } else {
             throw new Zend_Application_Bootstrap_Exception('Invalid application provided to bootstrap constructor (received "' . get_class($application) . '" instance)');
@@ -755,6 +758,7 @@ abstract class Zend_Application_Bootstrap_BootstrapAbstract
                 if (0 === strpos($className, $prefix)) {
                     $pluginName = substr($className, strlen($prefix));
                     $pluginName = trim($pluginName, '_');
+                    break;
                 }
             }
         }

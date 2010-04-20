@@ -16,7 +16,7 @@
  * @package    Zend_Validate
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Int.php 20182 2010-01-10 21:12:01Z thomas $
+ * @version    $Id: Int.php 20532 2010-01-22 20:18:23Z thomas $
  */
 
 /**
@@ -44,8 +44,8 @@ class Zend_Validate_Int extends Zend_Validate_Abstract
      * @var array
      */
     protected $_messageTemplates = array(
-        self::INVALID => "Invalid type given, value should be a string or a integer",
-        self::NOT_INT => "'%value%' does not appear to be an integer"
+        self::INVALID => "Invalid type given, value should be string or integer",
+        self::NOT_INT => "'%value%' does not appear to be an integer",
     );
 
     protected $_locale;
@@ -61,11 +61,15 @@ class Zend_Validate_Int extends Zend_Validate_Abstract
             $locale = $locale->toArray();
         }
 
-        if (is_array($locale) && array_key_exists('locale', $locale)) {
+        if (is_array($locale)) {
+            if (array_key_exists('locale', $locale)) {
                 $locale = $locale['locale'];
+            } else {
+                $locale = null;
+            }
         }
 
-        if ($locale === null) {
+        if (empty($locale)) {
             require_once 'Zend/Registry.php';
             if (Zend_Registry::isRegistered('Zend_Locale')) {
                 $locale = Zend_Registry::get('Zend_Locale');
@@ -110,6 +114,10 @@ class Zend_Validate_Int extends Zend_Validate_Abstract
         if (!is_string($value) && !is_int($value) && !is_float($value)) {
             $this->_error(self::INVALID);
             return false;
+        }
+
+        if (is_int($value)) {
+            return true;
         }
 
         $this->_setValue($value);

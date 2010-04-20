@@ -639,7 +639,6 @@ class Zend_Feed_Pubsubhubbub_Subscriber
             $client->setUri($url);
             $client->setRawData($this->_getRequestParameters($url, $mode));
             $response = $client->request();
-            echo $client->getLastRequest();
             if ($response->getStatus() !== 204
                 && $response->getStatus() !== 202
             ) {
@@ -721,7 +720,7 @@ class Zend_Feed_Pubsubhubbub_Subscriber
          * Establish a persistent verify_token and attach key to callback
          * URL's path/querystring
          */
-        $key   = $this->_generateSubscriptionKey($params);
+        $key   = $this->_generateSubscriptionKey($params, $hubUrl);
         $token = $this->_generateVerifyToken();
         $params['hub.verify_token'] = $token;
 
@@ -730,7 +729,7 @@ class Zend_Feed_Pubsubhubbub_Subscriber
             $params['hub.callback'] = $this->getCallbackUrl()
                 . '?xhub.subscription=' . Zend_Feed_Pubsubhubbub::urlencode($key);
         } else {
-            $params['hub.callback'] = $this->getCallbackUrl()
+            $params['hub.callback'] = rtrim($this->getCallbackUrl(), '/')
                 . '/' . Zend_Feed_Pubsubhubbub::urlencode($key);
         }
         if ($mode == 'subscribe' && !is_null($this->getLeaseSeconds())) {
@@ -755,7 +754,6 @@ class Zend_Feed_Pubsubhubbub_Subscriber
             'topic_url'          => $params['hub.topic'],
             'hub_url'            => $hubUrl,
             'created_time'       => $now->get('yyyy-MM-dd HH:mm:ss'),
-            'last_modified'      => $now->get('yyyy-MM-dd HH:mm:ss'),
             'lease_seconds'      => $expires,
             'verify_token'       => hash('sha256', $params['hub.verify_token']),
             'secret'             => null,
@@ -792,9 +790,9 @@ class Zend_Feed_Pubsubhubbub_Subscriber
      * @param  string $hubUrl The Hub Server URL for which this token will apply
      * @return string
      */
-    protected function _generateSubscriptionKey(array $params)
+    protected function _generateSubscriptionKey(array $params, $hubUrl)
     {
-        $keyBase = $params['hub.topic'] . $params['hub.callback'];
+        $keyBase = $params['hub.topic'] . $hubUrl;
         $key     = md5($keyBase);
         return $key;
     }

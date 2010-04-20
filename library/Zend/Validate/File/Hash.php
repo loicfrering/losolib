@@ -16,7 +16,7 @@
  * @package   Zend_Validate
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
- * @version   $Id: Hash.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version   $Id: Hash.php 20358 2010-01-17 19:03:49Z thomas $
  */
 
 /**
@@ -45,9 +45,9 @@ class Zend_Validate_File_Hash extends Zend_Validate_Abstract
      * @var array Error message templates
      */
     protected $_messageTemplates = array(
-        self::DOES_NOT_MATCH => "The file '%value%' does not match the given hashes",
-        self::NOT_DETECTED   => "There was no hash detected for the given file",
-        self::NOT_FOUND      => "The file '%value%' could not be found"
+        self::DOES_NOT_MATCH => "File '%value%' does not match the given hashes",
+        self::NOT_DETECTED   => "A hash could not be evaluated for the given file",
+        self::NOT_FOUND      => "File '%value%' could not be found"
     );
 
     /**

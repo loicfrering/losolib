@@ -16,7 +16,7 @@
  * @package    Zend_Feed_Writer
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Entry.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Entry.php 20519 2010-01-22 14:06:24Z padraic $
  */
 
 /**
@@ -28,6 +28,8 @@ require_once 'Zend/Date.php';
  * @see Zend_Date
  */
 require_once 'Zend/Uri.php';
+
+require_once 'Zend/Feed/Writer/Source.php';
 
 /**
  * @category   Zend
@@ -107,6 +109,10 @@ class Zend_Feed_Writer_Entry
                 }
                 $author['uri'] = $name['uri'];
             }
+        /**
+         * @deprecated
+         * Array notation (above) is preferred and will be the sole supported input from ZF 2.0
+         */
         } else {
             if (empty($name['name']) || !is_string($name['name'])) {
                 require_once 'Zend/Feed/Exception.php';
@@ -706,6 +712,45 @@ class Zend_Feed_Writer_Entry
         require_once 'Zend/Feed/Exception.php';
         throw new Zend_Feed_Exception('Method: ' . $method
             . ' does not exist and could not be located on a registered Extension');
+    }
+    
+    /**
+     * Creates a new Zend_Feed_Writer_Source data container for use. This is NOT
+     * added to the current feed automatically, but is necessary to create a
+     * container with some initial values preset based on the current feed data.
+     *
+     * @return Zend_Feed_Writer_Source
+     */
+    public function createSource()
+    {
+        $source = new Zend_Feed_Writer_Source;
+        if ($this->getEncoding()) {
+            $source->setEncoding($this->getEncoding());
+        }
+        $source->setType($this->getType());
+        return $source;
+    }
+
+    /**
+     * Appends a Zend_Feed_Writer_Entry object representing a new entry/item
+     * the feed data container's internal group of entries.
+     *
+     * @param Zend_Feed_Writer_Source $source
+     */
+    public function setSource(Zend_Feed_Writer_Source $source)
+    {
+        $this->_data['source'] = $source;
+    }
+    
+    /**
+     * @return Zend_Feed_Writer_Source
+     */
+    public function getSource()
+    {
+        if (isset($this->_data['source'])) {
+            return $this->_data['source'];
+        }
+        return null;
     }
 
     /**

@@ -38,7 +38,7 @@ require_once 'Zend/Form/Decorator/ViewHelper.php';
  * @subpackage Form_Decorator
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: DijitElement.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: DijitElement.php 20622 2010-01-25 20:25:57Z matthew $
  */
 class Zend_Dojo_Form_Decorator_DijitElement extends Zend_Form_Decorator_ViewHelper
 {
@@ -164,9 +164,7 @@ class Zend_Dojo_Form_Decorator_DijitElement extends Zend_Form_Decorator_ViewHelp
         $name      = $element->getFullyQualifiedName();
 
         $dijitParams = $this->getDijitParams();
-        if ($element->isRequired()) {
-            $dijitParams['required'] = true;
-        }
+        $dijitParams['required'] = $element->isRequired();
 
         $id = $element->getId();
         if ($view->dojo()->hasDijit($id)) {

@@ -25,7 +25,7 @@
  * @subpackage Query
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Css2Xpath.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Css2Xpath.php 20480 2010-01-21 17:46:20Z matthew $
  */
 class Zend_Dom_Query_Css2Xpath
 {
@@ -33,7 +33,7 @@ class Zend_Dom_Query_Css2Xpath
      * Transform CSS expression to XPath
      *
      * @param  string $path
-     * @return string|array
+     * @return string
      */
     public static function transform($path)
     {
@@ -49,10 +49,11 @@ class Zend_Dom_Query_Css2Xpath
                     $expressions = array_merge($expressions, $xpath);
                 }
             }
-            return $expressions;
+            return implode('|', $expressions);
         }
 
         $paths    = array('//');
+        $path     = preg_replace('|\s+>\s+|', '>', $path);
         $segments = preg_split('/\s+/', $path);
         foreach ($segments as $key => $segment) {
             $pathSegment = self::_tokenize($segment);
@@ -79,7 +80,7 @@ class Zend_Dom_Query_Css2Xpath
         if (1 == count($paths)) {
             return $paths[0];
         }
-        return implode(' | ', $paths);
+        return implode('|', $paths);
     }
 
     /**

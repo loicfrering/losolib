@@ -16,7 +16,7 @@
  * @package    Zend_Validate
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Barcode.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Barcode.php 20358 2010-01-17 19:03:49Z thomas $
  */
 
 /**
@@ -45,7 +45,7 @@ class Zend_Validate_Barcode extends Zend_Validate_Abstract
     protected $_messageTemplates = array(
         self::FAILED         => "'%value%' failed checksum validation",
         self::INVALID_CHARS  => "'%value%' contains invalid characters",
-        self::INVALID_LENGTH => "'%value%' should be %length% characters",
+        self::INVALID_LENGTH => "'%value%' should have a length of %length% characters",
         self::INVALID        => "Invalid type given, value should be string",
     );
 

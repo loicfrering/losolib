@@ -17,7 +17,7 @@
  * @subpackage Statement
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Exception.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Exception.php 20514 2010-01-22 07:57:10Z ralph $
  */
 
 /**
@@ -43,7 +43,7 @@ class Zend_Db_Statement_Exception extends Zend_Db_Exception
      */
     public function hasChainedException()
     {
-        return ($this->_previous !== null);
+        return ($this->getPrevious() !== null);
     }
 
     /**
@@ -51,6 +51,6 @@ class Zend_Db_Statement_Exception extends Zend_Db_Exception
      */
     public function getChainedException()
     {
-        return $this->_previous;
+        return $this->getPrevious();
     }
 }

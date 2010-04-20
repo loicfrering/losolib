@@ -16,7 +16,7 @@
  * @package    Zend_Validate
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Abstract.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Abstract.php 20412 2010-01-19 07:02:01Z thomas $
  */
 
 /**
@@ -44,8 +44,10 @@ abstract class Zend_Validate_Db_Abstract extends Zend_Validate_Abstract
     /**
      * @var array Message templates
      */
-    protected $_messageTemplates = array(self::ERROR_NO_RECORD_FOUND => 'No record matching %value% was found',
-                                         self::ERROR_RECORD_FOUND    => 'A record matching %value% was found');
+    protected $_messageTemplates = array(
+        self::ERROR_NO_RECORD_FOUND => 'No record matching %value% was found',
+        self::ERROR_RECORD_FOUND    => 'A record matching %value% was found',
+    );
 
     /**
      * @var string
@@ -99,11 +101,11 @@ abstract class Zend_Validate_Db_Abstract extends Zend_Validate_Abstract
             $temp['table'] = array_shift($options);
             $temp['field'] = array_shift($options);
             if (!empty($options)) {
-                $options['exclude'] = array_shift($options);
+                $temp['exclude'] = array_shift($options);
             }
 
             if (!empty($options)) {
-                $options['adapter'] = array_shift($options);
+                $temp['adapter'] = array_shift($options);
             }
 
             $options = $temp;

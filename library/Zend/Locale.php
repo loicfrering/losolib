@@ -16,7 +16,7 @@
  * @package   Zend_Locale
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
- * @version   $Id: Locale.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version   $Id: Locale.php 20731 2010-01-28 22:29:28Z thomas $
  */
 
 /**
@@ -291,6 +291,8 @@ class Zend_Locale
                 throw new Zend_Locale_Exception("Unknown locale '" . (string) $locale . "' can not be set as default!");
             }
         }
+
+        self::$_auto = self::getBrowser() + self::getEnvironment() + self::getDefault();
     }
 
     /**
@@ -743,7 +745,7 @@ class Zend_Locale
      *
      * @param  string|Zend_Locale $locale     Locale to check for
      * @param  boolean            $strict     (Optional) If true, no rerouting will be done when checking
-     * @param  boolean            $compatible (DEPRECIATED) Only for internal usage, brakes compatibility mode
+     * @param  boolean            $compatible (DEPRECATED) Only for internal usage, brakes compatibility mode
      * @return boolean If the locale is known dependend on the settings
      */
     public static function isLocale($locale, $strict = false, $compatible = true)
@@ -805,7 +807,6 @@ class Zend_Locale
             }
         }
 
-        require_once 'Zend/Locale.php';
         if ($locale === null) {
             $locale = new Zend_Locale();
         }

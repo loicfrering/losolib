@@ -16,7 +16,7 @@
  * @package    Zend_Locale
  * @subpackage Format
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
- * @version    $Id: Format.php 20279 2010-01-14 15:21:47Z thomas $
+ * @version    $Id: Format.php 21493 2010-03-14 12:01:43Z thomas $
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -270,6 +270,10 @@ class Zend_Locale_Format
             if (strlen($pre) >= $options['precision']) {
                 $input = substr($input, 0, strlen($input) - strlen($pre) + $options['precision']);
             }
+
+            if (($options['precision'] == 0) && ($input[strlen($input) - 1] == '.')) {
+                $input = substr($input, 0, -1);
+            }
         }
 
         return $input;
@@ -307,6 +311,10 @@ class Zend_Locale_Format
         if ($format === null) {
             $format  = Zend_Locale_Data::getContent($options['locale'], 'decimalnumber');
             $format  = self::_seperateFormat($format, $value, $options['precision']);
+
+            if ($options['precision'] !== null) {
+                $value   = Zend_Locale_Math::normalize(Zend_Locale_Math::round($value, $options['precision']));
+            }
         } else {
             // seperate negative format pattern when available
             $format  = self::_seperateFormat($format, $value, $options['precision']);
@@ -318,7 +326,7 @@ class Zend_Locale_Format
                         $options['precision'] = null;
                     } else {
                         $options['precision'] = iconv_strlen(iconv_substr($format, iconv_strpos($format, '.') + 1,
-                                                              iconv_strrpos($format, '0') - iconv_strpos($format, '.')));
+                                                             iconv_strrpos($format, '0') - iconv_strpos($format, '.')));
                         $format = iconv_substr($format, 0, iconv_strpos($format, '.') + 1) . '###'
                                 . iconv_substr($format, iconv_strrpos($format, '0') + 1);
                     }
@@ -518,7 +526,7 @@ class Zend_Locale_Format
     private static function _getRegexForType($type, $options)
     {
         $decimal  = Zend_Locale_Data::getContent($options['locale'], $type);
-        $decimal  = preg_replace('/[^#0,;\.\-Ee]/', '',$decimal);
+        $decimal  = preg_replace('/[^#0,;\.\-Ee]/u', '',$decimal);
         $patterns = explode(';', $decimal);
 
         if (count($patterns) == 1) {
@@ -604,7 +612,7 @@ class Zend_Locale_Format
                 }
             }
 
-            $regex[$pkey] .= '$/';
+            $regex[$pkey] .= '$/u';
         }
 
         return $regex;

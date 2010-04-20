@@ -16,7 +16,7 @@
  * @package   Zend_Validate
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
- * @version   $Id: Extension.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version   $Id: Extension.php 20358 2010-01-17 19:03:49Z thomas $
  */
 
 /**
@@ -44,8 +44,8 @@ class Zend_Validate_File_Extension extends Zend_Validate_Abstract
      * @var array Error message templates
      */
     protected $_messageTemplates = array(
-        self::FALSE_EXTENSION => "The file '%value%' has a false extension",
-        self::NOT_FOUND       => "The file '%value%' was not found"
+        self::FALSE_EXTENSION => "File '%value%' has a false extension",
+        self::NOT_FOUND       => "File '%value%' could not be found",
     );
 
     /**

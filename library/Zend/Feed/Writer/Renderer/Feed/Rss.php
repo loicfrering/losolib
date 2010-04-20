@@ -16,7 +16,7 @@
  * @package    Zend_Feed_Writer
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Rss.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Rss.php 20519 2010-01-22 14:06:24Z padraic $
  */
 
 /** @see Zend_Feed_Writer_Feed */
@@ -98,7 +98,11 @@ class Zend_Feed_Writer_Renderer_Feed_Rss
             if ($this->getDataContainer()->getEncoding()) {
                 $entry->setEncoding($this->getDataContainer()->getEncoding());
             }
-            $renderer = new Zend_Feed_Writer_Renderer_Entry_Rss($entry);
+            if ($entry instanceof Zend_Feed_Writer_Entry) {
+                $renderer = new Zend_Feed_Writer_Renderer_Entry_Rss($entry);
+            } else {
+                continue;
+            }
             if ($this->_ignoreExceptions === true) {
                 $renderer->ignoreExceptions();
             }

@@ -17,7 +17,7 @@
  * @subpackage Renderer
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: RendererAbstract.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: RendererAbstract.php 20316 2010-01-15 22:27:00Z mikaelkael $
  */
 
 /**
@@ -386,7 +386,7 @@ abstract class Zend_Barcode_Renderer_RendererAbstract
     protected function _adjustPosition($supportHeight, $supportWidth)
     {
         $barcodeHeight = $this->_barcode->getHeight(true) * $this->_moduleSize;
-        if ($barcodeHeight != $supportHeight) {
+        if ($barcodeHeight != $supportHeight && $this->_topOffset == 0) {
             switch ($this->_verticalPosition) {
                 case 'middle':
                     $this->_topOffset = floor(
@@ -402,7 +402,7 @@ abstract class Zend_Barcode_Renderer_RendererAbstract
             }
         }
         $barcodeWidth = $this->_barcode->getWidth(true) * $this->_moduleSize;
-        if ($barcodeWidth != $supportWidth) {
+        if ($barcodeWidth != $supportWidth && $this->_leftOffset == 0) {
             switch ($this->_horizontalPosition) {
                 case 'center':
                     $this->_leftOffset = floor(

@@ -55,12 +55,17 @@ class Zend_Application_Resource_Mail extends Zend_Application_Resource_ResourceA
     {
         if (null === $this->_transport) {
             $options = $this->getOptions();
-            
+            foreach($options as $key => $option) {
+                $options[strtolower($key)] = $option;         
+            }
+            $this->setOptions($options);
+
             if(isset($options['transport']) &&
                !is_numeric($options['transport']))
             {
                 $this->_transport = $this->_setupTransport($options['transport']);
                 if(!isset($options['transport']['register']) ||
+                   $options['transport']['register'] == '1' ||
                    (isset($options['transport']['register']) &&
                         !is_numeric($options['transport']['register']) &&
                         (bool) $options['transport']['register'] == true))
@@ -94,22 +99,31 @@ class Zend_Application_Resource_Mail extends Zend_Application_Resource_ResourceA
             }
         }
     }
-
+    
     protected function _setupTransport($options)
     {
-        $transportName = ucfirst(strtolower($options['type']));
-        unset($options['type']);
+    	if(!isset($options['type'])) {
+    		$options['type'] = 'sendmail';
+    	}
+    	
+        $transportName = $options['type'];
+        if(!Zend_Loader_Autoloader::autoload($transportName))
+        {
+            $transportName = ucfirst(strtolower($transportName));
 
-        if(!Zend_Loader_Autoloader::autoload($transportName)) {
-            $transportName = 'Zend_Mail_Transport_' . $transportName;
-
-            if(!Zend_Loader_Autoloader::autoload($transportName)) {
-                throw new Zend_Application_Resource_Exception(
-                    "Specified Mail Transport '{$transportName}'"
-                    . 'could not be found'
-                );
+            if(!Zend_Loader_Autoloader::autoload($transportName))
+            {
+                $transportName = 'Zend_Mail_Transport_' . $transportName;
+                if(!Zend_Loader_Autoloader::autoload($transportName)) {
+                    throw new Zend_Application_Resource_Exception(
+                        "Specified Mail Transport '{$transportName}'"
+                        . 'could not be found'
+                    );
+                }
             }
         }
+        
+        unset($options['type']);
         
         switch($transportName) {
             case 'Zend_Mail_Transport_Smtp':

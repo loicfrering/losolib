@@ -16,7 +16,7 @@
  * @package    Zend_Validate
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Alpha.php 20182 2010-01-10 21:12:01Z thomas $
+ * @version    $Id: Alpha.php 20442 2010-01-20 15:15:40Z matthew $
  */
 
 /**
@@ -40,7 +40,7 @@ class Zend_Validate_Alpha extends Zend_Validate_Abstract
      * Whether to allow white space characters; off by default
      *
      * @var boolean
-     * @depreciated
+     * @deprecated
      */
     public $allowWhiteSpace;
 
@@ -58,7 +58,7 @@ class Zend_Validate_Alpha extends Zend_Validate_Abstract
      */
     protected $_messageTemplates = array(
         self::INVALID      => "Invalid type given, value should be a string",
-        self::NOT_ALPHA    => "'%value%' has not only alphabetic characters",
+        self::NOT_ALPHA    => "'%value%' contains non alphabetic characters",
         self::STRING_EMPTY => "'%value%' is an empty string"
     );
 

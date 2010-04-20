@@ -16,7 +16,7 @@
  * @package    Zend_Feed_Writer
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Feed.php 20096 2010-01-06 02:05:09Z bkarwin $
+ * @version    $Id: Feed.php 20326 2010-01-16 00:20:43Z padraic $
  */
  
 /**
@@ -33,6 +33,16 @@ require_once 'Zend/Feed/Writer/Extension/RendererAbstract.php';
 class Zend_Feed_Writer_Extension_Atom_Renderer_Feed
     extends Zend_Feed_Writer_Extension_RendererAbstract
 {
+
+    /**
+     * Set to TRUE if a rendering method actually renders something. This
+     * is used to prevent premature appending of a XML namespace declaration
+     * until an element which requires it is actually appended.
+     *
+     * @var bool
+     */
+    protected $_called = false;
+    
     /**
      * Render feed
      * 
@@ -47,9 +57,11 @@ class Zend_Feed_Writer_Extension_Atom_Renderer_Feed
         if (strtolower($this->getType()) == 'atom') {
             return;
         }
-        $this->_appendNamespaces();
         $this->_setFeedLinks($this->_dom, $this->_base);
         $this->_setHubs($this->_dom, $this->_base);
+        if ($this->_called) {
+            $this->_appendNamespaces();
+        }
     }
     
     /**
@@ -84,6 +96,7 @@ class Zend_Feed_Writer_Extension_Atom_Renderer_Feed
             $flink->setAttribute('type', $mime);
             $flink->setAttribute('href', $href);
         }
+        $this->_called = true;
     }
     
     /**
@@ -105,5 +118,6 @@ class Zend_Feed_Writer_Extension_Atom_Renderer_Feed
             $hub->setAttribute('href', $hubUrl);
             $root->appendChild($hub);
         }
+        $this->_called = true;
     }
 }
