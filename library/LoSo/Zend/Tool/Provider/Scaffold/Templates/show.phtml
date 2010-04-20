@@ -1,0 +1,5 @@
+<h1><?= $this->translate('{%module}.{%entityVar}.show.title') ?></h1>
+<?= $this->partial('{%entityVar}/partial{%entity}.phtml', $this->{%entityVar}) ?>
+<p>
+    <a href="<?= $this->url(array('action' => 'list')) ?>" title="<?= $this->translate('global.return') ?>"><?= $this->translate('global.return') ?></a>
+</p>
