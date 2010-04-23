@@ -3,13 +3,13 @@ abstract class LoSo_Zend_Tool_Provider_Scaffold_Abstract
 {
     protected $entityName;
     protected $module;
-    protected $appnamespace;
+    protected $moduleNamespace;
 
-    public function __construct($entityName, $module, $appnamespace)
+    public function __construct($entityName, $module, $moduleNamespace)
     {
         $this->entityName = $entityName;
         $this->module = $module;
-        $this->appnamespace = $appnamespace;
+        $this->moduleNamespace = $moduleNamespace;
     }
 
     abstract public function scaffold();
@@ -19,13 +19,23 @@ abstract class LoSo_Zend_Tool_Provider_Scaffold_Abstract
         return $this->entityName;
     }
 
+    protected function _getEntityVarName()
+    {
+        return lcfirst($this->entityName);
+    }
+
+    protected function _getEntitiesVarName()
+    {
+        return $this->_getEntityVarName() . 's';
+    }
+
     protected function _getModule()
     {
         return $this->module;
     }
 
-    protected function _getAppNamespace()
+    protected function _getModuleNamespace()
     {
-        return $this->appnamespace;
+        return $this->moduleNamespace;
     }
 }

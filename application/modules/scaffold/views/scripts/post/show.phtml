@@ -1,0 +1,5 @@
+<h1><?= $this->translate('Show Post') ?></h1>
+<?= $this->partial('post/partialPost.phtml', $this->post) ?>
+<p>
+    <a href="<?= $this->url(array('action' => 'list', 'id' => null)) ?>" title="<?= $this->translate('Return') ?>"><?= $this->translate('Return') ?></a>
+</p>

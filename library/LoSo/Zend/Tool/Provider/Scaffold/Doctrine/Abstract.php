@@ -8,8 +8,7 @@ abstract class LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Abstract extends LoSo_Z
         if(null === $this->metadata) {
             $entityName = $this->_getEntityName();
             Zend_Loader_Autoloader::getInstance()->registerNamespace('Doctrine');
-            require_once './application/models/' . $entityName . '.php';
-            $entityClass = $this->_getAppNamespace() . '_Model_' . $entityName;
+            $entityClass = $this->_getModuleNamespace() . '_Model_' . $entityName;
             $metadata = new Doctrine\ORM\Mapping\ClassMetadata($entityClass);
             $reader = new \Doctrine\Common\Annotations\AnnotationReader(new \Doctrine\Common\Cache\ArrayCache);
             $reader->setDefaultAnnotationNamespace('Doctrine\ORM\Mapping\\');

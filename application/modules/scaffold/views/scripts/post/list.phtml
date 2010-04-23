@@ -1,0 +1,8 @@
+<h1><?= $this->translate('List Post') ?></h1>
+<p>
+    <a href="<?= $this->url(array('action' => 'new')) ?>" title="<?= $this->translate('New Post') ?>"><?= $this->translate('New Post') ?></a>
+</p>
+<?= $this->partialLoop('post/partialPost.phtml', $this->posts) ?>
+<p>
+    <a href="<?= $this->url(array('action' => 'new')) ?>" title="<?= $this->translate('New Post') ?>"><?= $this->translate('New Post') ?></a>
+</p>

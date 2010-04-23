@@ -1,8 +1,8 @@
-<h1><?= $this->translate('{%module}.{%entityVar}.list.title') ?></h1>
+<h1><?= $this->translate('{%module.entity.action.list.title}') ?></h1>
 <p>
-    <a href="<?= $this->url(array('action' => 'new')) ?>" title="<?= $this->translate('{%module}.{%entityVar}.new.link') ?>"><?= $this->translate('{%module}.{%entityVar}.new.link') ?></a>
+    <a href="<?= $this->url(array('action' => 'new')) ?>" title="<?= $this->translate('{%module.entity.action.new.link}') ?>"><?= $this->translate('{%module.entity.action.new.link}') ?></a>
 </p>
 <?= $this->partialLoop('{%entityVar}/partial{%entity}.phtml', $this->{%entitiesVar}) ?>
 <p>
-    <a href="<?= $this->url(array('action' => 'new')) ?>" title="<?= $this->translate('{%module}.{%entityVar}.new.link') ?>"><?= $this->translate('{%module}.{%entityVar}.new.link') ?></a>
+    <a href="<?= $this->url(array('action' => 'new')) ?>" title="<?= $this->translate('{%module.entity.action.new.link}') ?>"><?= $this->translate('{%module.entity.action.new.link}') ?></a>
 </p>

@@ -1,5 +1,5 @@
-<h1><?= $this->translate('{%module}.{%entityVar}.new.title') ?></h1>
+<h1><?= $this->translate('{%module.entity.action.new.title}') ?></h1>
 <?= $this->{%entityVar}Form ?>
 <p>
-    <a href="<?= $this->url(array('action' => 'list')) ?>" title="<?= $this->translate('global.cancel') ?>"><?= $this->translate('global.cancel') ?></a>
+    <a href="<?= $this->url(array('action' => 'list', 'id' => null)) ?>" title="<?= $this->translate('{%global.cancel}') ?>"><?= $this->translate('{%global.cancel}') ?></a>
 </p>

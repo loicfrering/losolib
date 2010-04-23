@@ -1,8 +1,8 @@
 <?php
-class {%entity}Controller extends Zend_Controller_Action
+class {%controllerNamespace}{%entity}Controller extends Zend_Controller_Action
 {
     /**
-     * @var {%appnamespace}_Service_Doctrine_{%entity}Service
+     * @var {%moduleNamespace}_Service_Doctrine_{%entity}Service
      * @Inject
      */
     protected ${%entityVar}Service;
@@ -33,7 +33,7 @@ class {%entity}Controller extends Zend_Controller_Action
 
     public function newAction()
     {
-        ${%entityVar}Form = new {%appnamespace}_Form_{%entity}();
+        ${%entityVar}Form = new {%moduleNamespace}_Form_{%entity}();
         ${%entityVar}Form->setAction($this->view->url(array('action' => 'create')));
         $this->view->{%entityVar}Form = ${%entityVar}Form;
     }
@@ -41,7 +41,7 @@ class {%entity}Controller extends Zend_Controller_Action
     public function editAction()
     {
         ${%entityVar} = $this->_find{%entity}($this->_getParam('id'));
-        ${%entityVar}Form = new {%appnamespace}_Form_{%entity}();
+        ${%entityVar}Form = new {%moduleNamespace}_Form_{%entity}();
         ${%entityVar}Form->setAction($this->view->url(array('action' => 'update')))
                          ->populate(${%entityVar});
         $this->view->{%entityVar}Form = ${%entityVar}Form;
@@ -56,15 +56,15 @@ class {%entity}Controller extends Zend_Controller_Action
 
     public function createAction()
     {
-        ${%entityVar}Form = new {%appnamespace}_Form_{%entity}();
+        ${%entityVar}Form = new {%moduleNamespace}_Form_{%entity}();
         if($this->getRequest()->isPost()) {
             if(${%entityVar}Form->isValid($_POST)) {
-                ${%entityVar} = new {%appnamespace}_Model_{%entity}();
+                ${%entityVar} = new {%moduleNamespace}_Model_{%entity}();
                 $this->{%entityVar}Service->populate(${%entityVar}, ${%entityVar}Form->getValues());
                 $this->{%entityVar}Service->create(${%entityVar});
                 $this->{%entityVar}Service->flush();
 
-                $this->_helper->flashMessenger('{%module}.{%entityVar}.create.success');
+                $this->_helper->flashMessenger($this->view->translate('{%module.entity.action.create.success}'));
                 return $this->_helper->redirector('show', null, null, array('id' => ${%entityVar}->getId()));
             }
             else {
@@ -78,14 +78,14 @@ class {%entity}Controller extends Zend_Controller_Action
     public function updateAction()
     {
         ${%entityVar} = $this->_find{%entity}($this->_getParam('id'));
-        ${%entityVar}Form = new {%appnamespace}_Form_{%entity}();
+        ${%entityVar}Form = new {%moduleNamespace}_Form_{%entity}();
         if($this->getRequest()->isPost()) {
             if(${%entityVar}Form->isValid($_POST)) {
                 $this->{%entityVar}Service->populate(${%entityVar}, ${%entityVar}Form->getValues());
                 $this->{%entityVar}Service->create(${%entityVar});
                 $this->{%entityVar}Service->flush();
 
-                $this->_helper->flashMessenger('{%module}.{%entityVar}.update.success');
+                $this->_helper->flashMessenger($this->view->translate('{%module.entity.action.update.success}'));
                 return $this->_helper->redirector('show', null, null, array('id' => ${%entityVar}->getId()));
             }
             else {
@@ -104,7 +104,7 @@ class {%entity}Controller extends Zend_Controller_Action
             $this->{%entityVar}Service->delete(${%entityVar});
             $this->{%entityVar}Service->flush();
 
-            $this->_helper->flashMessenger('{%module}.{%entityVar}.destroy.success');
+            $this->_helper->flashMessenger($this->view->translate('{%module.entity.action.destroy.success}'));
             return $this->_helper->redirector('list');
         }
         return $this->_helper->redirector('list');
@@ -114,7 +114,7 @@ class {%entity}Controller extends Zend_Controller_Action
     {
         ${%entityVar} = $this->{%entityVar}Service->find($this->_getParam('id'));
         if(null === ${%entityVar}) {
-            $this->_helper->flashMessenger('{%module}.{%entityVar}.notfound.id' . $this->_getParam('id'));
+            $this->_helper->flashMessenger($this->view->translate('{%module.entity.notfound.id}', $this->_getParam('id')));
             return $this->_helper->redirector('list');
         }
         return ${%entityVar};

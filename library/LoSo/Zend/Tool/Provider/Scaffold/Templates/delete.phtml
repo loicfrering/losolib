@@ -1,9 +1,9 @@
-<h1><?= $this->translate('{%module}.{%entityVar}.delete.title') ?></h1>
+<h1><?= $this->translate('{%module.entity.action.delete.title}') ?></h1>
 <p>Delete ?<p>
 <?= $this->partial('{%entityVar}/partial{%entity}.phtml', $this->{%entityVar}) ?>
 <form method="post" action="<?= $this->url(array('action' => 'destroy')) ?>">
-    <?= $this->formSubmit('submit', $this->translate('global.delete')) ?>
+    <?= $this->formSubmit('submit', $this->translate('{%global.delete}')) ?>
 </form>
 <p>
-    <a href="<?= $this->url(array('action' => 'list')) ?>" title="<?= $this->translate('global.cancel') ?>"><?= $this->translate('global.cancel') ?></a>
+    <a href="<?= $this->url(array('action' => 'list', 'id' => null)) ?>" title="<?= $this->translate('{%global.cancel}') ?>"><?= $this->translate('{%global.cancel}') ?></a>
 </p>

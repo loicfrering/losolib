@@ -1,0 +1,9 @@
+<h1><?= $this->translate('Delete Post') ?></h1>
+<p>Delete ?<p>
+<?= $this->partial('post/partialPost.phtml', $this->post) ?>
+<form method="post" action="<?= $this->url(array('action' => 'destroy')) ?>">
+    <?= $this->formSubmit('submit', $this->translate('Delete')) ?>
+</form>
+<p>
+    <a href="<?= $this->url(array('action' => 'list', 'id' => null)) ?>" title="<?= $this->translate('Cancel') ?>"><?= $this->translate('Cancel') ?></a>
+</p>

@@ -1,9 +1,0 @@
-<h1><?= $this->translate('default.post.delete.title') ?></h1>
-<p>Delete ?<p>
-<?= $this->partial('post/partialPost.phtml', $this->post) ?>
-<form method="post" action="<?= $this->url(array('action' => 'destroy')) ?>">
-    <?= $this->formSubmit('submit', $this->translate('global.delete')) ?>
-</form>
-<p>
-    <a href="<?= $this->url(array('action' => 'list')) ?>" title="<?= $this->translate('global.cancel') ?>"><?= $this->translate('global.cancel') ?></a>
-</p>

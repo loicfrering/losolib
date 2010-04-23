@@ -1,8 +1,8 @@
 <?php
-class PostController extends Zend_Controller_Action
+class Scaffold_PostController extends Zend_Controller_Action
 {
     /**
-     * @var Application_Service_Doctrine_PostService
+     * @var Scaffold_Service_Doctrine_PostService
      * @Inject
      */
     protected $postService;
@@ -33,7 +33,7 @@ class PostController extends Zend_Controller_Action
 
     public function newAction()
     {
-        $postForm = new Application_Form_Post();
+        $postForm = new Scaffold_Form_Post();
         $postForm->setAction($this->view->url(array('action' => 'create')));
         $this->view->postForm = $postForm;
     }
@@ -41,7 +41,7 @@ class PostController extends Zend_Controller_Action
     public function editAction()
     {
         $post = $this->_findPost($this->_getParam('id'));
-        $postForm = new Application_Form_Post();
+        $postForm = new Scaffold_Form_Post();
         $postForm->setAction($this->view->url(array('action' => 'update')))
                          ->populate($post);
         $this->view->postForm = $postForm;
@@ -56,15 +56,15 @@ class PostController extends Zend_Controller_Action
 
     public function createAction()
     {
-        $postForm = new Application_Form_Post();
+        $postForm = new Scaffold_Form_Post();
         if($this->getRequest()->isPost()) {
             if($postForm->isValid($_POST)) {
-                $post = new Application_Model_Post();
+                $post = new Scaffold_Model_Post();
                 $this->postService->populate($post, $postForm->getValues());
                 $this->postService->create($post);
                 $this->postService->flush();
 
-                $this->_helper->flashMessenger('default.post.create.success');
+                $this->_helper->flashMessenger($this->view->translate('Post successfully created.'));
                 return $this->_helper->redirector('show', null, null, array('id' => $post->getId()));
             }
             else {
@@ -78,14 +78,14 @@ class PostController extends Zend_Controller_Action
     public function updateAction()
     {
         $post = $this->_findPost($this->_getParam('id'));
-        $postForm = new Application_Form_Post();
+        $postForm = new Scaffold_Form_Post();
         if($this->getRequest()->isPost()) {
             if($postForm->isValid($_POST)) {
                 $this->postService->populate($post, $postForm->getValues());
                 $this->postService->create($post);
                 $this->postService->flush();
 
-                $this->_helper->flashMessenger('default.post.update.success');
+                $this->_helper->flashMessenger($this->view->translate('Post successfully updated.'));
                 return $this->_helper->redirector('show', null, null, array('id' => $post->getId()));
             }
             else {
@@ -104,7 +104,7 @@ class PostController extends Zend_Controller_Action
             $this->postService->delete($post);
             $this->postService->flush();
 
-            $this->_helper->flashMessenger('default.post.destroy.success');
+            $this->_helper->flashMessenger($this->view->translate('Post successfully deleted.'));
             return $this->_helper->redirector('list');
         }
         return $this->_helper->redirector('list');
@@ -114,7 +114,7 @@ class PostController extends Zend_Controller_Action
     {
         $post = $this->postService->find($this->_getParam('id'));
         if(null === $post) {
-            $this->_helper->flashMessenger('default.post.notfound.id' . $this->_getParam('id'));
+            $this->_helper->flashMessenger($this->view->translate('Post with id %s not found.', $this->_getParam('id')));
             return $this->_helper->redirector('list');
         }
         return $post;

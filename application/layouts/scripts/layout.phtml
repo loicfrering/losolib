@@ -11,7 +11,7 @@
         <?php if(!empty($this->messages)) : ?>
             <ul>
                 <?php foreach($this->messages as $message) : ?>
-                    <li><?= $this->escape($this->translate($message)) ?></li>
+                    <li><?= $this->escape($message) ?></li>
                 <?php endforeach; ?>
             </ul>
         <?php endif; ?>
