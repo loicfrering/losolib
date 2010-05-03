@@ -1,4 +1,7 @@
 <?php
+/**
+ * @Service
+ */
 class Scaffold_PostController extends Zend_Controller_Action
 {
     /**
@@ -6,6 +9,12 @@ class Scaffold_PostController extends Zend_Controller_Action
      * @Inject
      */
     protected $postService;
+
+    public function setPostService($postService)
+    {
+        $this->postService = $postService;
+        return $this;
+    }
 
     public function init()
     {
@@ -43,7 +52,7 @@ class Scaffold_PostController extends Zend_Controller_Action
         $post = $this->_findPost($this->_getParam('id'));
         $postForm = new Scaffold_Form_Post();
         $postForm->setAction($this->view->url(array('action' => 'update')))
-                         ->populate($post);
+            ->populate($post);
         $this->view->postForm = $postForm;
         
     }

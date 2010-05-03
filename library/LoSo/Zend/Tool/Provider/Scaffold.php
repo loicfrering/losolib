@@ -229,7 +229,7 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
 
         $applicationPath = isset($this->_registry->getConfig()->application->path) ? $this->_registry->getConfig()->application->path : 'application';
         $applicationConfigPath = isset($this->_registry->getConfig()->application->configPath) ? $this->_registry->getConfig()->application->configPath : 'configs/application.ini';
-        $applicationEnv = isset($this->_registry->getConfig()->application->env) ? $this->_registry->getConfig()->application->env : 'production';
+        $applicationEnv = isset($this->_registry->getConfig()->application->env) ? $this->_registry->getConfig()->application->env : 'development';
 
         defined('APPLICATION_PATH') || define('APPLICATION_PATH', $applicationPath);
 

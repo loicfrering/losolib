@@ -30,9 +30,6 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         $options = $this->getOption('bootstrap');
 
         if(null === $this->_container && $options['container']['type'] == 'symfony') {
-            $autoloader = Zend_Loader_Autoloader::getInstance();
-            $autoloader->pushAutoloader(array('LoSo_Symfony_Components_Autoloader', 'autoload'));
-
             if ($this->_doCache() && $this->_cacheExists()) {
                 $cacheFile = $this->_getCacheFile();
                 $cacheName = pathinfo($cacheFile, PATHINFO_FILENAME);
@@ -40,7 +37,7 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
                 $container = new $cacheName();
             }
             else {
-                $container = new sfServiceContainerBuilder();
+                $container = new \Symfony\Components\DependencyInjection\Builder();
             }
 
             $this->_container = $container;
@@ -91,64 +88,68 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         $options = $this->getOption('bootstrap');
         $sfContainerOptions = isset($options['container']['symfony']) ? $options['container']['symfony'] : array();
 
+        $container = $this->getContainer();
+        $configuration = new \Symfony\Components\DependencyInjection\BuilderConfiguration();
+
         // Load configuration files
         if(isset($sfContainerOptions['configFiles'])) {
             foreach($sfContainerOptions['configFiles'] as $file) {
-                $this->_loadConfigFile($file);
+                $configuration->merge($this->_loadConfigFile($file));
             }
         }
         // Load configuration paths for annotated classes
         if(isset($sfContainerOptions['configPaths'])) {
             foreach($sfContainerOptions['configPaths'] as $path) {
-                $this->_loadPath($path);
+                $configuration->merge($this->_loadPath($path));
             }
         }
 
         // Load controllers into service container
-        $loader = new LoSo_Symfony_Components_ServiceContainerLoaderZendController($this->getContainer());
+        $loader = new \LoSo\Symfony\Components\DependencyInjection\Loader\ZendControllerLoader($this->getContainer());
         $front = $this->getResource('FrontController');
         $controllerDirectories = $front->getControllerDirectory();
         foreach ($controllerDirectories as $controllerDirectory) {
-            $loader->load($controllerDirectory);
+            $configuration->merge($loader->load($controllerDirectory));
         }
+
+        $container->merge($configuration);
     }
 
     protected function _cacheContainer()
     {
         $cacheFile = $this->_getCacheFile();
         $cacheName = pathinfo($cacheFile, PATHINFO_FILENAME);
-        $dumper = new sfServiceContainerDumperPhp($this->getContainer());
+        $dumper = new \Symfony\Components\DependencyInjection\Dumper\PhpDumper($this->getContainer());
         file_put_contents($cacheFile, $dumper->dump(array('class' => $cacheName)));
     }
 
     protected function _loadConfigFile($file)
     {
-        $container = $this->getContainer();
         $suffix = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 
         switch ($suffix) {
             case 'xml':
-                $loader = new sfServiceContainerLoaderFileXml($container);
+                $loader = new \Symfony\Components\DependencyInjection\Loader\XmlFileLoader();
                 break;
 
             case 'yml':
-                $loader = new sfServiceContainerLoaderFileYaml($container);
+                $loader = new \Symfony\Components\DependencyInjection\Loader\YamlFileLoader();
                 break;
 
             case 'ini':
-                $loader = new sfServiceContainerLoaderFileIni($container);
+                $loader = new \Symfony\Components\DependencyInjection\Loader\IniFileLoader();
                 break;
 
             default:
-                throw new LoSo_Symfony_Exception("Invalid configuration file provided; unknown config type '$suffix'");
+                throw new \LoSo\Symfony\Components\Exception("Invalid configuration file provided; unknown config type '$suffix'");
         }
-        $loader->load($file);
+        return $loader->load($file);
     }
 
     protected function _loadPath($path)
     {
-        $loader = new LoSo_Symfony_Components_ServiceContainerLoaderAnnotations($this->getContainer());
-        $loader->load($path);
+        $loader = new \LoSo\Symfony\Components\DependencyInjection\Loader\AnnotationsLoader();
+        return $loader->load($path);
     }
 
     public static function getRegistryIndex()

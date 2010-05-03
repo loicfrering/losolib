@@ -80,7 +80,7 @@ class LoSo_Zend_Application_Resource_Doctrine2 extends Zend_Application_Resource
     {
         $options = $this->getOptions();
         $container = $this->getBootstrap()->getApplication()->getBootstrap()->getContainer();
-        if($container instanceof sfServiceContainer) {
+        if($container instanceof \Symfony\Components\DependencyInjection\ContainerInterface) {
             $container->setParameter('doctrine.orm.mapping_dir', $options['config']['mappingDir']);
             $container->setParameter('doctrine.orm.entities_dir', $options['config']['entitiesDir']);
         }

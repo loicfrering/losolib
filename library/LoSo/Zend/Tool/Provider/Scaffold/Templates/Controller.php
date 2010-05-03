@@ -1,4 +1,7 @@
 <?php
+/**
+ * @Service
+ */
 class {%controllerNamespace}{%entity}Controller extends Zend_Controller_Action
 {
     /**
