@@ -3,14 +3,21 @@
  * Description of DiController
  *
  * @author Loïc Frering <loic.frering@gmail.com>
+ * @Service
  */
 class DiController extends Zend_Controller_Action
 {
     /**
+     * @var Application_Service_TestService
      * @Inject
-     * @var string
      */
     private $_testService;
+
+    public function setTestService($testService)
+    {
+        $this->_testService = $testService;
+        return $this;
+    }
 
     public function indexAction()
     {

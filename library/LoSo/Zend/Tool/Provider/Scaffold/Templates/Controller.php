@@ -7,6 +7,12 @@ class {%controllerNamespace}{%entity}Controller extends Zend_Controller_Action
      */
     protected ${%entityVar}Service;
 
+    public function set{%entity}Service(${%entityVar}Service)
+    {
+        $this->{%entityVar}Service = ${%entityVar}Service;
+        return $this;
+    }
+
     public function init()
     {
         $this->view->messages = $this->_helper->flashMessenger->getMessages();
@@ -43,7 +49,7 @@ class {%controllerNamespace}{%entity}Controller extends Zend_Controller_Action
         ${%entityVar} = $this->_find{%entity}($this->_getParam('id'));
         ${%entityVar}Form = new {%moduleNamespace}_Form_{%entity}();
         ${%entityVar}Form->setAction($this->view->url(array('action' => 'update')))
-                         ->populate(${%entityVar});
+            ->populate(${%entityVar});
         $this->view->{%entityVar}Form = ${%entityVar}Form;
         
     }

@@ -50,8 +50,9 @@ class LoSo_Symfony_Components_ServiceContainerLoaderAnnotations extends sfServic
                 $this->_definitions[$serviceName] = $definition;
             }
         }
+        catch(Zend_Reflection_Exception $e) {
+        }
         catch(ReflectionException $e) {
-            
         }
     }
 
@@ -78,11 +79,9 @@ class LoSo_Symfony_Components_ServiceContainerLoaderAnnotations extends sfServic
                 }
             }
         }
-        catch(ReflectionException $e) {
-
-        }
         catch(Zend_Reflection_Exception $e) {
-
+        }
+        catch(ReflectionException $e) {
         }
     }
 
@@ -114,7 +113,6 @@ class LoSo_Symfony_Components_ServiceContainerLoaderAnnotations extends sfServic
                     }
                 }
                 catch(Zend_Reflection_Exception $e) {
-
                 }
             }
         }
@@ -123,7 +121,7 @@ class LoSo_Symfony_Components_ServiceContainerLoaderAnnotations extends sfServic
     protected function _reflectServiceName(Zend_Reflection_Class $r)
     {
         $className = $r->getName();
-        $serviceTagDescription = $r->getDocblock()->getTag('Service')->getDescription();
+        $serviceTagDescription = trim($r->getDocblock()->getTag('Service')->getDescription());
         if(!empty($serviceTagDescription)) {
             return $serviceTagDescription;
         }

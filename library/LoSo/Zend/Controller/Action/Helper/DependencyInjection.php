@@ -12,42 +12,6 @@ class LoSo_Zend_Controller_Action_Helper_DependencyInjection extends Zend_Contro
      */
     protected $_container;
 
-    public function preDispatch()
-    {
-        $actionController = $this->getActionController();
-        $this->_container = $actionController->getInvokeArg('bootstrap')->getContainer();
-
-        $r = new Zend_Reflection_Class($actionController);
-        $properties = $r->getProperties();
-
-        foreach($properties as $property) {
-            if($property->getDeclaringClass()->getName() == get_class($actionController)) {
-                if($property->getDocComment() && $property->getDocComment()->hasTag('Inject')) {
-                    $injectTag = $property->getDocComment()->getTag('Inject');
-                    $serviceName = $injectTag->getDescription();
-                    if(empty($serviceName)) {
-                        $serviceName = $this->_formatServiceName($property->getName());
-                    }
-                    if($this->_container->hasService($serviceName)) {
-                        $property->setAccessible(true);
-                        $property->setValue($actionController, $this->_container->getService($serviceName));
-                    } else {
-                        throw new LoSo_Exception('Unknown service "' . $serviceName . '" for controller "' . get_class($actionController) . '".');
-                    }
-                }
-            }
-        }
-        
-    }
-
-    protected function _formatServiceName($serviceName)
-    {
-        if(strpos($serviceName, '_') === 0) {
-            $serviceName = substr($serviceName, 1);
-        }
-        return $serviceName;
-    }
-
     public function direct($name)
     {
         if($this->_container->hasService($name)) {
