@@ -45,10 +45,10 @@ class ModFunction extends FunctionNode
     public function getSql(\Doctrine\ORM\Query\SqlWalker $sqlWalker)
     {
         //TODO: Use platform to get SQL
-        return 'SQRT(' 
-             . $sqlWalker->walkSimpleArithmeticExpression($this->_firstSimpleArithmeticExpression)
+        return 'MOD(' 
+             . $sqlWalker->walkSimpleArithmeticExpression($this->firstSimpleArithmeticExpression)
              . ', ' 
-             . $sqlWalker->walkSimpleArithmeticExpression($this->_secondSimpleArithmeticExpression) 
+             . $sqlWalker->walkSimpleArithmeticExpression($this->secondSimpleArithmeticExpression) 
              . ')';
     }
 

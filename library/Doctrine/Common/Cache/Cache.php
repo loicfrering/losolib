@@ -28,6 +28,7 @@ namespace Doctrine\Common\Cache;
  * @link    www.doctrine-project.org
  * @since   2.0
  * @version $Revision: 3938 $
+ * @author  Benjamin Eberlei <kontakt@beberlei.de>
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
  * @author  Jonathan Wage <jonwage@gmail.com>
  * @author  Roman Borschel <roman@code-factory.org>
@@ -55,10 +56,10 @@ interface Cache
      *
      * @param string $id The cache id.
      * @param string $data The cache entry/data.
-     * @param int $lifeTime The lifetime. If != false, sets a specific lifetime for this cache entry (null => infinite lifeTime).
+     * @param int $lifeTime The lifetime. If != 0, sets a specific lifetime for this cache entry (0 => infinite lifeTime).
      * @return boolean TRUE if the entry was successfully stored in the cache, FALSE otherwise.
      */
-    function save($id, $data, $lifeTime = false);
+    function save($id, $data, $lifeTime = 0);
 
     /**
      * Deletes a cache entry.

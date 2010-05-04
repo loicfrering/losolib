@@ -37,30 +37,31 @@ final class DiscriminatorColumn extends Annotation {
     public $length;
 }
 final class DiscriminatorMap extends Annotation {}
-/*final class SubClasses extends Annotation {}*/
 final class Id extends Annotation {}
 final class GeneratedValue extends Annotation {
-    public $strategy;
+    public $strategy = 'AUTO';
 }
 final class Version extends Annotation {}
 final class JoinColumn extends Annotation {
     public $name;
     public $fieldName; // field name used in non-object hydration (array/scalar)
-    public $referencedColumnName;
+    public $referencedColumnName = 'id';
     public $unique = false;
     public $nullable = true;
     public $onDelete;
     public $onUpdate;
+    public $columnDefinition;
 }
 final class JoinColumns extends Annotation {}
 final class Column extends Annotation {
-    public $type;
+    public $type = 'string';
     public $length;
-    public $precision = 0; // The precision for a decimal (exact numeric) column (Applies only for decimal column)
-    public $scale = 0; // The scale for a decimal (exact numeric) column (Applies only for decimal column)
+    // The precision for a decimal (exact numeric) column (Applies only for decimal column)
+    public $precision = 0;
+    // The scale for a decimal (exact numeric) column (Applies only for decimal column)
+    public $scale = 0;
     public $unique = false;
     public $nullable = false;
-    public $default; //TODO: remove?
     public $name;
     public $options = array();
     public $columnDefinition;
@@ -68,9 +69,9 @@ final class Column extends Annotation {
 final class OneToOne extends Annotation {
     public $targetEntity;
     public $mappedBy;
+    public $inversedBy;
     public $cascade;
     public $fetch = 'LAZY';
-    public $optional;
     public $orphanRemoval = false;
 }
 final class OneToMany extends Annotation {
@@ -84,11 +85,12 @@ final class ManyToOne extends Annotation {
     public $targetEntity;
     public $cascade;
     public $fetch = 'LAZY';
-    public $optional;
+    public $inversedBy;
 }
 final class ManyToMany extends Annotation {
     public $targetEntity;
     public $mappedBy;
+    public $inversedBy;
     public $cascade;
     public $fetch = 'LAZY';
 }
@@ -121,6 +123,7 @@ final class SequenceGenerator extends Annotation {
     public $initialValue = 1;
 }
 final class ChangeTrackingPolicy extends Annotation {}
+final class OrderBy extends Annotation {}
 
 /* Annotations for lifecycle callbacks */
 final class HasLifecycleCallbacks extends Annotation {}
@@ -132,5 +135,3 @@ final class PreRemove extends Annotation {}
 final class PostRemove extends Annotation {}
 final class PostLoad extends Annotation {}
 
-/* Generic annotation for Doctrine extensions */
-final class DoctrineX extends Annotation {}

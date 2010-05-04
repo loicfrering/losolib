@@ -1,6 +1,6 @@
 <?php
 /*
- *  $Id: Table.php 7007 2010-01-06 13:23:56Z guilhermeblanco $
+ *  $Id$
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -23,6 +23,7 @@ namespace Doctrine\DBAL\Schema;
 
 use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Schema\Visitor\Visitor;
+use Doctrine\DBAL\DBALException;
 
 /**
  * Object Representation of a table
@@ -101,6 +102,10 @@ class Table extends AbstractAsset
      */
     public function __construct($tableName, array $columns=array(), array $indexes=array(), array $fkConstraints=array(), $idGeneratorType=self::ID_NONE, array $options=array())
     {
+        if (strlen($tableName) == 0) {
+            throw DBALException::invalidTableName($tableName);
+        }
+
         $this->_setName($tableName);
         $this->_idGeneratorType = $idGeneratorType;
         
@@ -148,7 +153,14 @@ class Table extends AbstractAsset
      */
     public function setPrimaryKey(array $columns, $indexName = false)
     {
-        return $this->_createIndex($columns, $indexName ?: "primary", true, true);
+        $primaryKey = $this->_createIndex($columns, $indexName ?: "primary", true, true);
+
+        foreach ($columns AS $columnName) {
+            $column = $this->getColumn($columnName);
+            $column->setNotnull(true);
+        }
+
+        return $primaryKey;
     }
 
     /**
@@ -195,6 +207,30 @@ class Table extends AbstractAsset
     }
 
     /**
+     * Check if an index begins in the order of the given columns.
+     *
+     * @param  array $columnsNames
+     * @return bool
+     */
+    public function columnsAreIndexed(array $columnsNames)
+    {
+        foreach ($this->getIndexes() AS $index) {
+            $indexColumns = $index->getColumns();
+            $areIndexed = true;
+            for ($i = 0; $i < count($columnsNames); $i++) {
+                if ($columnsNames[$i] != $indexColumns[$i]) {
+                    $areIndexed = false;
+                }
+            }
+
+            if ($areIndexed) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      *
      * @param array $columnNames
      * @param string $indexName
@@ -227,7 +263,7 @@ class Table extends AbstractAsset
      * @param array $options
      * @return Column
      */
-    public function createColumn($columnName, $typeName, array $options=array())
+    public function addColumn($columnName, $typeName, array $options=array())
     {
         $column = new Column($columnName, Type::getType($typeName), $options);
 
@@ -578,7 +614,7 @@ class Table extends AbstractAsset
         $visitor->acceptTable($this);
 
         foreach ($this->getColumns() AS $column) {
-            $visitor->acceptColunn($this, $column);
+            $visitor->acceptColumn($this, $column);
         }
 
         foreach ($this->getIndexes() AS $index) {
@@ -587,6 +623,23 @@ class Table extends AbstractAsset
 
         foreach ($this->getForeignKeys() AS $constraint) {
             $visitor->acceptForeignKey($this, $constraint);
+        }
+    }
+
+    /**
+     * Clone of a Table triggers a deep clone of all affected assets
+     */
+    public function __clone()
+    {
+        foreach ($this->_columns AS $k => $column) {
+            $this->_columns[$k] = clone $column;
+        }
+        foreach ($this->_indexes AS $k => $index) {
+            $this->_indexes[$k] = clone $index;
+        }
+        foreach ($this->_fkConstraints AS $k => $fk) {
+            $this->_fkConstraints[$k] = clone $fk;
+            $this->_fkConstraints[$k]->setLocalTable($this);
         }
     }
 }

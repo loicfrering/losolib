@@ -26,7 +26,7 @@ namespace Doctrine\Common;
  *
  * This class contains no event data. It is used by events that do not pass state
  * information to an event handler when an event is raised. The single empty EventArgs
- * instance can be obtained through {@link getEmptyInstance()}.
+ * instance can be obtained through {@link getEmptyInstance}.
  *
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  * @link    www.doctrine-project.org
@@ -43,10 +43,18 @@ class EventArgs
      * @static
      */
     private static $_emptyEventArgsInstance;
-    
+
     /**
-     * Gets the single, empty EventArgs instance.
-     * 
+     * Gets the single, empty and immutable EventArgs instance.
+     *
+     * This instance will be used when events are dispatched without any parameter,
+     * like this: EventManager::dispatchEvent('eventname');
+     *
+     * The benefit from this is that only one empty instance is instantiated and shared
+     * (otherwise there would be instances for every dispatched in the abovementioned form)
+     *
+     * @see EventManager::dispatchEvent
+     * @link http://msdn.microsoft.com/en-us/library/system.eventargs.aspx
      * @static
      * @return EventArgs
      */
@@ -55,7 +63,7 @@ class EventArgs
         if ( ! self::$_emptyEventArgsInstance) {
             self::$_emptyEventArgsInstance = new EventArgs;
         }
-        
+
         return self::$_emptyEventArgsInstance;
     }
-}  
+}

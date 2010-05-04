@@ -1,7 +1,5 @@
 <?php
 /*
- *  $Id$
- *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -21,7 +19,7 @@
 
 namespace Doctrine\ORM\Mapping;
 
-use Doctrine\Common\DoctrineException;
+use ReflectionClass, ReflectionProperty;
 
 /**
  * A <tt>ClassMetadata</tt> instance holds all the object-relational mapping metadata
@@ -56,6 +54,13 @@ class ClassMetadata extends ClassMetadataInfo
      * @var array
      */
     public $reflFields = array();
+    
+    /**
+     * The prototype from which new instances of the mapped class are created.
+     * 
+     * @var object
+     */
+    private $_prototype;
 
     /**
      * Initializes a new ClassMetadata instance that will hold the object-relational mapping
@@ -65,13 +70,10 @@ class ClassMetadata extends ClassMetadataInfo
      */
     public function __construct($entityName)
     {
-        $this->name = $entityName;
-        $this->reflClass = new \ReflectionClass($entityName);
+        parent::__construct($entityName);
+        $this->reflClass = new ReflectionClass($entityName);
         $this->namespace = $this->reflClass->getNamespaceName();
-        $this->primaryTable['name'] = $this->reflClass->getShortName();
-        $this->rootEntityName = $entityName;
-        
-        //$this->prototype = unserialize(sprintf('O:%d:"%s":0:{}', strlen($this->name), $this->name));
+        $this->table['name'] = $this->reflClass->getShortName();
     }
 
     /**
@@ -92,18 +94,6 @@ class ClassMetadata extends ClassMetadataInfo
     public function getReflectionProperties()
     {
         return $this->reflFields;
-    }
-
-    /**
-     * INTERNAL:
-     * Adds a reflection property. Usually only used by the ClassMetadataFactory
-     * while processing inheritance mappings.
-     *
-     * @param array $props
-     */
-    public function addReflectionProperty($propName, \ReflectionProperty $property)
-    {
-        $this->reflFields[$propName] = $property;
     }
 
     /**
@@ -156,7 +146,7 @@ class ClassMetadata extends ClassMetadataInfo
      * with the same order as the field order in {@link identifier}.
      *
      * @param object $entity
-     * @return mixed
+     * @return array
      */
     public function getIdentifierValues($entity)
     {
@@ -173,15 +163,6 @@ class ClassMetadata extends ClassMetadataInfo
             return array($this->identifier[0] => $this->reflFields[$this->identifier[0]]->getValue($entity));
         }
     }
-    
-    public function getColumnValues($entity, array $columns)
-    {
-        $values = array();
-        foreach ($columns as $column) {
-            $values[] = $this->reflFields[$this->fieldNames[$column]]->getValue($entity);
-        }
-        return $values;
-    }
 
     /**
      * Populates the entity identifier of an entity.
@@ -193,7 +174,7 @@ class ClassMetadata extends ClassMetadataInfo
     public function setIdentifierValues($entity, $id)
     {
         if ($this->isIdentifierComposite) {
-            foreach ((array)$id as $idField => $idValue) {
+            foreach ($id as $idField => $idValue) {
                 $this->reflFields[$idField]->setValue($entity, $idValue);
             }
         } else {
@@ -214,15 +195,14 @@ class ClassMetadata extends ClassMetadataInfo
     }
 
     /**
-     * Sets the field mapped to the specified column to the specified value on the given entity.
+     * Gets the specified field's value off the given entity.
      *
      * @param object $entity
      * @param string $field
-     * @param mixed $value
      */
-    public function setColumnValue($entity, $column, $value)
+    public function getFieldValue($entity, $field)
     {
-        $this->reflFields[$this->fieldNames[$column]]->setValue($entity, $value);
+        return $this->reflFields[$field]->getValue($entity);
     }
 
     /**
@@ -236,26 +216,12 @@ class ClassMetadata extends ClassMetadataInfo
 
         // Store ReflectionProperty of mapped field
         $sourceFieldName = $assocMapping->sourceFieldName;
-        
-	    $refProp = $this->reflClass->getProperty($sourceFieldName);
-	    $refProp->setAccessible(true);
-	    $this->reflFields[$sourceFieldName] = $refProp;
+
+        $refProp = $this->reflClass->getProperty($sourceFieldName);
+        $refProp->setAccessible(true);
+        $this->reflFields[$sourceFieldName] = $refProp;
     }
-    
-    /**
-     * Dispatches the lifecycle event of the given entity to the registered
-     * lifecycle callbacks and lifecycle listeners.
-     *
-     * @param string $event  The lifecycle event.
-     * @param Entity $entity  The Entity on which the event occured.
-     */
-    public function invokeLifecycleCallbacks($lifecycleEvent, $entity)
-    {
-        foreach ($this->lifecycleCallbacks[$lifecycleEvent] as $callback) {
-            $entity->$callback();
-        }
-    }
-    
+
     /**
      * Gets the (possibly quoted) column name of a mapped field for safe use
      * in an SQL statement.
@@ -280,25 +246,11 @@ class ClassMetadata extends ClassMetadataInfo
      */
     public function getQuotedTableName($platform)
     {
-        return isset($this->primaryTable['quoted']) ?
-                $platform->quoteIdentifier($this->primaryTable['name']) :
-                $this->primaryTable['name'];
+        return isset($this->table['quoted']) ?
+                $platform->quoteIdentifier($this->table['name']) :
+                $this->table['name'];
     }
-    
-    /**
-     * Gets the (possibly quoted) name of the discriminator column for safe use
-     * in an SQL statement.
-     * 
-     * @param AbstractPlatform $platform
-     * @return string
-     */
-    public function getQuotedDiscriminatorColumnName($platform)
-    {
-        return isset($this->discriminatorColumn['quoted']) ?
-                $platform->quoteIdentifier($this->discriminatorColumn['name']) :
-                $this->discriminatorColumn['name'];
-    }
-    
+
     /**
      * Creates a string representation of this instance.
      *
@@ -312,8 +264,12 @@ class ClassMetadata extends ClassMetadataInfo
     
     /**
      * Determines which fields get serialized.
+     *
+     * It is only serialized what is necessary for best unserialization performance.
+     * That means any metadata properties that are not set or empty or simply have
+     * their default value are NOT serialized.
      * 
-     * Parts that are NOT serialized because they can not be properly unserialized:
+     * Parts that are also NOT serialized because they can not be properly unserialized:
      *      - reflClass (ReflectionClass)
      *      - reflFields (ReflectionProperty array)
      * 
@@ -321,35 +277,58 @@ class ClassMetadata extends ClassMetadataInfo
      */
     public function __sleep()
     {
-        return array(
-            'associationMappings', // unserialization bottleneck with many assocs
-            'changeTrackingPolicy',
+        // This metadata is always serialized/cached.
+        $serialized = array(
+            'associationMappings',
             'columnNames', //TODO: Not really needed. Can use fieldMappings[$fieldName]['columnName']
-            'customRepositoryClassName',
-            'discriminatorColumn',
-            'discriminatorValue',
-            'discriminatorMap',
             'fieldMappings',
-            'fieldNames', //TODO: Not all of this stuff needs to be serialized. Only type, columnName and fieldName.
-            'generatorType',
+            'fieldNames',
             'identifier',
-            'idGenerator', //TODO: Does not really need to be serialized. Could be moved to runtime.
-            'inheritanceType',
-            'inheritedAssociationFields',
-            'inverseMappings', //TODO: Remove!
-            'isIdentifierComposite',
-            'isMappedSuperclass',
-            'isVersioned',
-            'lifecycleCallbacks',
+            'isIdentifierComposite', // TODO: REMOVE
             'name',
-            'parentClasses',
-            'primaryTable',
+            'table',
             'rootEntityName',
-            'subClasses',
-            'versionField'
+            'idGenerator', //TODO: Does not really need to be serialized. Could be moved to runtime.
         );
+
+        // The rest of the metadata is only serialized if necessary.
+        if ($this->changeTrackingPolicy != self::CHANGETRACKING_DEFERRED_IMPLICIT) {
+            $serialized[] = 'changeTrackingPolicy';
+        }
+
+        if ($this->customRepositoryClassName) {
+            $serialized[] = 'customRepositoryClassName';
+        }
+
+        if ($this->inheritanceType != self::INHERITANCE_TYPE_NONE) {
+            $serialized[] = 'inheritanceType';
+            $serialized[] = 'discriminatorColumn';
+            $serialized[] = 'discriminatorValue';
+            $serialized[] = 'discriminatorMap';
+            $serialized[] = 'parentClasses';
+            $serialized[] = 'subClasses';
+        }
+
+        if ($this->generatorType != self::GENERATOR_TYPE_NONE) {
+            $serialized[] = 'generatorType';
+        }
+
+        if ($this->isMappedSuperclass) {
+            $serialized[] = 'isMappedSuperclass';
+        }
+
+        if ($this->isVersioned) {
+            $serialized[] = 'isVersioned';
+            $serialized[] = 'versionField';
+        }
+
+        if ($this->lifecycleCallbacks) {
+            $serialized[] = 'lifecycleCallbacks';
+        }
+
+        return $serialized;
     }
-    
+
     /**
      * Restores some state that can not be serialized/unserialized.
      * 
@@ -358,32 +337,40 @@ class ClassMetadata extends ClassMetadataInfo
     public function __wakeup()
     {
         // Restore ReflectionClass and properties
-        $this->reflClass = new \ReflectionClass($this->name);
-        
+        $this->reflClass = new ReflectionClass($this->name);
+
         foreach ($this->fieldMappings as $field => $mapping) {
-	        if (isset($mapping['inherited'])) {
-	            $reflField = new \ReflectionProperty($mapping['inherited'], $field);
-	        } else {
-	            $reflField = $this->reflClass->getProperty($field);
-	        }
-	            
-            $reflField->setAccessible(true);
-            $this->reflFields[$field] = $reflField;
-        }
-        
-        foreach ($this->associationMappings as $field => $mapping) {
-            if (isset($this->inheritedAssociationFields[$field])) {
-                $reflField = new \ReflectionProperty($this->inheritedAssociationFields[$field], $field);
+            if (isset($mapping['declared'])) {
+                $reflField = new ReflectionProperty($mapping['declared'], $field);
             } else {
                 $reflField = $this->reflClass->getProperty($field);
             }
-                
             $reflField->setAccessible(true);
             $this->reflFields[$field] = $reflField;
         }
-        
-        //$this->prototype = unserialize(sprintf('O:%d:"%s":0:{}', strlen($this->name), $this->name));
+
+        foreach ($this->associationMappings as $field => $mapping) {
+            if ($mapping->declared) {
+                $reflField = new ReflectionProperty($mapping->declared, $field);
+            } else {
+                $reflField = $this->reflClass->getProperty($field);
+            }
+
+            $reflField->setAccessible(true);
+            $this->reflFields[$field] = $reflField;
+        }
     }
     
-    //public $prototype;
+    /**
+     * Creates a new instance of the mapped class, without invoking the constructor.
+     * 
+     * @return object
+     */
+    public function newInstance()
+    {
+        if ($this->_prototype === null) {
+            $this->_prototype = unserialize(sprintf('O:%d:"%s":0:{}', strlen($this->name), $this->name));
+        }
+        return clone $this->_prototype;
+    }
 }

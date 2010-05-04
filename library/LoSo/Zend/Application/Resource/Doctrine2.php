@@ -21,6 +21,8 @@ class LoSo_Zend_Application_Resource_Doctrine2 extends Zend_Application_Resource
         $options = $this->getOptions();
 
         $this->_config = new Configuration;
+        $driverImpl = $this->_config->newDefaultAnnotationDriver(array(APPLICATION_PATH . '/' . $options['config']['entitiesDir']));
+        $this->_config->setMetadataDriverImpl($driverImpl);
 
         // Parameters
         $this->_initParameters();

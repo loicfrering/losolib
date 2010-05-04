@@ -1,6 +1,6 @@
 <?php
 /*
- *  $Id: TableDiff.php 6864 2009-12-05 15:48:54Z beberlei $
+ *  $Id$
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -95,7 +95,7 @@ class TableDiff
 
     /**
      * All added foreign key definitions
-     * 
+     *
      * @var array
      */
     public $addedForeignKeys = array();
@@ -119,14 +119,14 @@ class TableDiff
      *
      * @param array(string=>Column) $addedColumns
      * @param array(string=>Column) $changedColumns
-     * @param array(string=>bool)             $removedColumns
-     * @param array(string=>Index) $addedIndexes
-     * @param array(string=>Index) $changedIndexes
-     * @param array(string=>bool)             $removedIndexes
+     * @param array(string=>bool)   $removedColumns
+     * @param array(string=>Index)  $addedIndexes
+     * @param array(string=>Index)  $changedIndexes
+     * @param array(string=>bool)   $removedIndexes
      */
-    function __construct( $tableName, $addedColumns = array(), $changedColumns = array(),
-            $removedColumns = array(), $addedIndexes = array(), $changedIndexes =
-            array(), $removedIndexes = array() )
+    public function __construct($tableName, $addedColumns = array(),
+        $changedColumns = array(), $removedColumns = array(), $addedIndexes = array(),
+        $changedIndexes = array(), $removedIndexes = array())
     {
         $this->name = $tableName;
         $this->addedColumns = $addedColumns;

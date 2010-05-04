@@ -21,7 +21,7 @@
 
 namespace Doctrine\DBAL\Driver\OCI8;
 
-use Doctrine\DBAL\Connection;
+use \PDO;
 
 /**
  * The OCI8 implementation of the Statement interface.
@@ -36,17 +36,32 @@ class OCI8Statement implements \Doctrine\DBAL\Driver\Statement
     private $_paramCounter = 0;
     private static $_PARAM = ':param';
     private static $fetchStyleMap = array(
-        Connection::FETCH_BOTH => OCI_BOTH,
-        Connection::FETCH_ASSOC => OCI_ASSOC,
-        Connection::FETCH_NUM => OCI_NUM
+        PDO::FETCH_BOTH => OCI_BOTH,
+        PDO::FETCH_ASSOC => OCI_ASSOC,
+        PDO::FETCH_NUM => OCI_NUM
     );
     private $_paramMap = array();
-    
+
+    /**
+     * Creates a new OCI8Statement that uses the given connection handle and SQL statement.
+     *
+     * @param resource $dbh The connection handle.
+     * @param string $statement The SQL statement.
+     */
     public function __construct($dbh, $statement)
     {
         $this->_sth = oci_parse($dbh, $this->_convertPositionalToNamedPlaceholders($statement));
     }
-    
+
+    /**
+     * Oracle does not support positional parameters, hence this method converts all
+     * positional parameters into artificially named parameters. Note that this conversion
+     * is not perfect. All question marks (?) in the original statement are treated as
+     * placeholders and converted to a named parameter.
+     *
+     * @param string $statement The SQL statement to convert.
+     * @todo review and test for lost spaces. we experienced missing spaces with oci8 in some sql statements.
+     */
     private function _convertPositionalToNamedPlaceholders($statement)
     {
         $count = 1;
@@ -55,16 +70,8 @@ class OCI8Statement implements \Doctrine\DBAL\Driver\Statement
             $statement = substr_replace($statement, ":param$count", $pos, 1);
             ++$count;
         }
-        
+
         return $statement;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function bindColumn($column, &$param, $type = null)
-    {
-        return oci_define_by_name($this->_sth, strtoupper($column), $param, $type);
     }
 
     /**
@@ -78,7 +85,7 @@ class OCI8Statement implements \Doctrine\DBAL\Driver\Statement
     /**
      * {@inheritdoc}
      */
-    public function bindParam($column, &$variable, $type = null, $length = null, $driverOptions = array())
+    public function bindParam($column, &$variable, $type = null)
     {
         $column = isset($this->_paramMap[$column]) ? $this->_paramMap[$column] : $column;
         
@@ -126,24 +133,30 @@ class OCI8Statement implements \Doctrine\DBAL\Driver\Statement
     /**
      * {@inheritdoc}
      */
-    public function execute($params = array())
+    public function execute($params = null)
     {
-        $hasZeroIndex = isset($params[0]);
-        foreach ($params as $key => $val) {
-            if ($hasZeroIndex && is_numeric($key)) {
-                $this->bindValue($key + 1, $val);
-            } else {
-                $this->bindValue($key, $val);
+        if ($params) {
+            $hasZeroIndex = isset($params[0]);
+            foreach ($params as $key => $val) {
+                if ($hasZeroIndex && is_numeric($key)) {
+                    $this->bindValue($key + 1, $val);
+                } else {
+                    $this->bindValue($key, $val);
+                }
             }
         }
-        
-        return oci_execute($this->_sth, OCI_DEFAULT);
+
+        $ret = @oci_execute($this->_sth, OCI_DEFAULT);
+        if ( ! $ret) {
+            throw OCI8Exception::fromErrorInfo($this->errorInfo());
+        }
+        return $ret;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function fetch($fetchStyle = Connection::FETCH_BOTH)
+    public function fetch($fetchStyle = PDO::FETCH_BOTH)
     {
         if ( ! isset(self::$fetchStyleMap[$fetchStyle])) {
             throw new \InvalidArgumentException("Invalid fetch style: " . $fetchStyle);
@@ -155,7 +168,7 @@ class OCI8Statement implements \Doctrine\DBAL\Driver\Statement
     /**
      * {@inheritdoc}
      */
-    public function fetchAll($fetchStyle = Connection::FETCH_BOTH)
+    public function fetchAll($fetchStyle = PDO::FETCH_BOTH)
     {
         if ( ! isset(self::$fetchStyleMap[$fetchStyle])) {
             throw new \InvalidArgumentException("Invalid fetch style: " . $fetchStyle);

@@ -96,10 +96,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
 
     protected function _getPortableViewDefinition($view)
     {
-        return array(
-            'name' => $view['viewname'],
-            'sql' => $view['definition']
-        );
+        return new View($view['viewname'], $view['definition']);
     }
 
     protected function _getPortableUserDefinition($user)
@@ -131,7 +128,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
             $columnNameSql = "SELECT attnum, attname FROM pg_attribute
                 WHERE attrelid={$row['indrelid']} AND attnum $colNumbersSql ORDER BY attnum ASC;";
                 
-            $stmt = $this->_conn->execute($columnNameSql);
+            $stmt = $this->_conn->executeQuery($columnNameSql);
             $indexColumns = $stmt->fetchAll();
 
             // required for getting the order of the columns right.
@@ -160,11 +157,6 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
     {
         $data = $this->_conn->fetchAll('SELECT min_value, increment_by FROM '.$sequence['relname']);
         return new Sequence($sequence['relname'], $data[0]['increment_by'], $data[0]['min_value']);
-    }
-
-    protected function _getPortableTableConstraintDefinition($tableConstraint)
-    {
-        return $tableConstraint['relname'];
     }
 
     protected function _getPortableTableColumnDefinition($tableColumn)

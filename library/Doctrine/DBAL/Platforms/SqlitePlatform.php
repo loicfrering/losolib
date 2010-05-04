@@ -21,7 +21,7 @@
 
 namespace Doctrine\DBAL\Platforms;
 
-use Doctrine\Common\DoctrineException;
+use Doctrine\DBAL\DBALException;
 
 /**
  * The SqlitePlatform class describes the specifics and dialects of the SQLite
@@ -29,74 +29,11 @@ use Doctrine\Common\DoctrineException;
  *
  * @since 2.0
  * @author Roman Borschel <roman@code-factory.org>
+ * @author Benjamin Eberlei <kontakt@beberlei.de>
+ * @todo Rename: SQLitePlatform
  */
 class SqlitePlatform extends AbstractPlatform
 {
-    /**
-     * the constructor
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-    
-    /**
-     * Returns the md5 sum of the data that SQLite's md5() function receives.
-     *
-     * @param mixed $data
-     * @return string
-     */
-    public static function md5Impl($data)
-    {
-        return md5($data);
-    }
-
-    /**
-     * Returns the modules of the data that SQLite's mod() function receives.
-     *
-     * @param integer $dividend
-     * @param integer $divisor
-     * @return string
-     */
-    public static function modImpl($dividend, $divisor)
-    {
-        return $dividend % $divisor;
-    }
-
-    /**
-     * locate
-     * returns the position of the first occurrence of substring $substr in string $str that
-     * SQLite's locate() function receives
-     *
-     * @param string $substr    literal string to find
-     * @param string $str       literal string
-     * @return string
-     */
-    public static function locateImpl($substr, $str)
-    {
-        return strpos($str, $substr);
-    }
-
-    public static function sha1Impl($str)
-    {
-        return sha1($str);
-    }
-
-    public static function ltrimImpl($str)
-    {
-        return ltrim($str);
-    }
-
-    public static function rtrimImpl($str)
-    {
-        return rtrim($str);
-    }
-
-    public static function trimImpl($str)
-    {
-        return trim($str);
-    }
-
     /**
      * returns the regular expression operator
      *
@@ -106,20 +43,6 @@ class SqlitePlatform extends AbstractPlatform
     public function getRegexpExpression()
     {
         return 'RLIKE';
-    }
-
-    /**
-     * Returns a string to call a function to compute the
-     * soundex encoding of a string
-     *
-     * The string "?000" is returned if the argument is NULL.
-     *
-     * @param string $value
-     * @return string   SQL soundex function with given parameter
-     */
-    public function getSoundexExpression($value)
-    {
-        return 'SOUNDEX(' . $value . ')';
     }
 
     /**
@@ -143,14 +66,27 @@ class SqlitePlatform extends AbstractPlatform
     }
 
     /**
-     * return string to call a function to get random value inside an SQL statement
+     * Trim a string, leading/trailing/both and with a given char which defaults to space.
      *
-     * @return string to generate float between 0 and 1
-     * @override
+     * @param string $str
+     * @param int $pos
+     * @param string $char
+     * @return string
      */
-    public function getRandomExpression()
+    public function getTrimExpression($str, $pos = self::TRIM_UNSPECIFIED, $char = false)
     {
-        return '((RANDOM() + 2147483648) / 4294967296)';
+        $trimFn = '';
+        $trimChar = ($char != false) ? (', ' . $char) : '';
+
+        if ($pos == self::TRIM_LEADING) {
+            $trimFn = 'LTRIM';
+        } else if($pos == self::TRIM_TRAILING) {
+            $trimFn = 'RTRIM';
+        } else {
+            $trimFn = 'TRIM';
+        }
+
+        return $trimFn . '(' . $str . $trimChar . ')';
     }
 
     /**
@@ -174,7 +110,24 @@ class SqlitePlatform extends AbstractPlatform
         return 'SUBSTR(' . $value . ', ' . $position . ', LENGTH(' . $value . '))';
     }
 
-    protected function _getTransactionIsolationLevelSql($level)
+    /**
+     * returns the position of the first occurrence of substring $substr in string $str
+     *
+     * @param string $substr    literal string to find
+     * @param string $str       literal string
+     * @param int    $pos       position to start at, beginning of string by default
+     * @return integer
+     */
+    public function getLocateExpression($str, $substr, $startPos = false)
+    {
+        if ($startPos == false) {
+            return 'LOCATE('.$str.', '.$substr.')';
+        } else {
+            return 'LOCATE('.$str.', '.$substr.', '.$startPos.')';
+        }
+    }
+
+    protected function _getTransactionIsolationLevelSQL($level)
     {
         switch ($level) {
             case \Doctrine\DBAL\Connection::TRANSACTION_READ_UNCOMMITTED:
@@ -184,13 +137,13 @@ class SqlitePlatform extends AbstractPlatform
             case \Doctrine\DBAL\Connection::TRANSACTION_SERIALIZABLE:
                 return 1;
             default:
-                return parent::_getTransactionIsolationLevelSql($level);
+                return parent::_getTransactionIsolationLevelSQL($level);
         }
     }
 
-    public function getSetTransactionIsolationSql($level)
+    public function getSetTransactionIsolationSQL($level)
     {
-        return 'PRAGMA read_uncommitted = ' . $this->_getTransactionIsolationLevelSql($level);
+        return 'PRAGMA read_uncommitted = ' . $this->_getTransactionIsolationLevelSQL($level);
     }
 
     /** 
@@ -204,7 +157,7 @@ class SqlitePlatform extends AbstractPlatform
     /** 
      * @override 
      */
-    public function getBooleanTypeDeclarationSql(array $field)
+    public function getBooleanTypeDeclarationSQL(array $field)
     {
         return 'BOOLEAN';
     }
@@ -212,17 +165,17 @@ class SqlitePlatform extends AbstractPlatform
     /** 
      * @override 
      */
-    public function getIntegerTypeDeclarationSql(array $field)
+    public function getIntegerTypeDeclarationSQL(array $field)
     {
-        return $this->_getCommonIntegerTypeDeclarationSql($field);
+        return $this->_getCommonIntegerTypeDeclarationSQL($field);
     }
 
     /** 
      * @override 
      */
-    public function getBigIntTypeDeclarationSql(array $field)
+    public function getBigIntTypeDeclarationSQL(array $field)
     {
-        return $this->_getCommonIntegerTypeDeclarationSql($field);
+        return $this->_getCommonIntegerTypeDeclarationSQL($field);
     }
 
     /** 
@@ -230,15 +183,15 @@ class SqlitePlatform extends AbstractPlatform
      */
     public function getTinyIntTypeDeclarationSql(array $field)
     {
-        return $this->_getCommonIntegerTypeDeclarationSql($field);
+        return $this->_getCommonIntegerTypeDeclarationSQL($field);
     }
 
     /** 
      * @override 
      */
-    public function getSmallIntTypeDeclarationSql(array $field)
+    public function getSmallIntTypeDeclarationSQL(array $field)
     {
-        return $this->_getCommonIntegerTypeDeclarationSql($field);
+        return $this->_getCommonIntegerTypeDeclarationSQL($field);
     }
 
     /** 
@@ -246,13 +199,13 @@ class SqlitePlatform extends AbstractPlatform
      */
     public function getMediumIntTypeDeclarationSql(array $field)
     {
-        return $this->_getCommonIntegerTypeDeclarationSql($field);
+        return $this->_getCommonIntegerTypeDeclarationSQL($field);
     }
 
     /** 
      * @override 
      */
-    public function getDateTimeTypeDeclarationSql(array $fieldDeclaration)
+    public function getDateTimeTypeDeclarationSQL(array $fieldDeclaration)
     {
         return 'DATETIME';
     }
@@ -260,7 +213,7 @@ class SqlitePlatform extends AbstractPlatform
     /**
      * @override
      */
-    public function getDateTypeDeclarationSql(array $fieldDeclaration)
+    public function getDateTypeDeclarationSQL(array $fieldDeclaration)
     {
         return 'DATE';
     }
@@ -268,7 +221,7 @@ class SqlitePlatform extends AbstractPlatform
     /**
      * @override
      */
-    public function getTimeTypeDeclarationSql(array $fieldDeclaration)
+    public function getTimeTypeDeclarationSQL(array $fieldDeclaration)
     {
         return 'TIME';
     }
@@ -276,7 +229,7 @@ class SqlitePlatform extends AbstractPlatform
     /** 
      * @override 
      */
-    protected function _getCommonIntegerTypeDeclarationSql(array $columnDef)
+    protected function _getCommonIntegerTypeDeclarationSQL(array $columnDef)
     {
         $autoinc = ! empty($columnDef['autoincrement']) ? ' AUTOINCREMENT' : '';
         $pk = ! empty($columnDef['primary']) && ! empty($autoinc) ? ' PRIMARY KEY' : '';
@@ -313,16 +266,9 @@ class SqlitePlatform extends AbstractPlatform
      * @return void
      * @override
      */
-    protected function _getCreateTableSql($name, array $columns, array $options = array())
+    protected function _getCreateTableSQL($name, array $columns, array $options = array())
     {
-        if ( ! $name) {
-            throw DoctrineException::invalidTableName($name);
-        }
-
-        if (empty($columns)) {
-            throw DoctrineException::noFieldsSpecifiedForTable($name);
-        }
-        $queryFields = $this->getColumnDeclarationListSql($columns);
+        $queryFields = $this->getColumnDeclarationListSQL($columns);
 
         $autoinc = false;
         foreach($columns as $field) {
@@ -342,12 +288,12 @@ class SqlitePlatform extends AbstractPlatform
 
         if (isset($options['indexes']) && ! empty($options['indexes'])) {
             foreach ($options['indexes'] as $index => $indexDef) {
-                $query[] = $this->getCreateIndexSql($indexDef, $name);
+                $query[] = $this->getCreateIndexSQL($indexDef, $name);
             }
         }
         if (isset($options['unique']) && ! empty($options['unique'])) {
             foreach ($options['unique'] as $index => $indexDef) {
-                $query[] = $this->getCreateIndexSql($indexDef, $name);
+                $query[] = $this->getCreateIndexSQL($indexDef, $name);
             }
         }
         return $query;
@@ -356,7 +302,7 @@ class SqlitePlatform extends AbstractPlatform
     /**
      * {@inheritdoc}
      */
-    public function getVarcharTypeDeclarationSql(array $field)
+    public function getVarcharTypeDeclarationSQL(array $field)
     {
         if ( ! isset($field['length'])) {
             if (array_key_exists('default', $field)) {
@@ -372,54 +318,44 @@ class SqlitePlatform extends AbstractPlatform
                 : ($length ? 'VARCHAR(' . $length . ')' : 'TEXT');
     }
     
-    public function getClobTypeDeclarationSql(array $field)
+    public function getClobTypeDeclarationSQL(array $field)
     {
         return 'CLOB';
     }
 
-    public function getListSequencesSql($database)
-    {
-        return "SELECT name FROM sqlite_master WHERE type='table' AND sql NOT NULL ORDER BY name";
-    }
-
-    public function getListTableConstraintsSql($table)
+    public function getListTableConstraintsSQL($table)
     {
         return "SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name = '$table' AND sql NOT NULL ORDER BY name";
     }
 
-    public function getListTableColumnsSql($table)
+    public function getListTableColumnsSQL($table)
     {
         return "PRAGMA table_info($table)";
     }
 
-    public function getListTableIndexesSql($table)
+    public function getListTableIndexesSQL($table)
     {
         return "PRAGMA index_list($table)";
     }
 
-    public function getListTablesSql()
+    public function getListTablesSQL()
     {
         return "SELECT name FROM sqlite_master WHERE type = 'table' AND name != 'sqlite_sequence' "
              . "UNION ALL SELECT name FROM sqlite_temp_master "
              . "WHERE type = 'table' ORDER BY name";
     }
 
-    public function getListTableViews()
+    public function getListViewsSQL($database)
     {
         return "SELECT name, sql FROM sqlite_master WHERE type='view' AND sql NOT NULL";
     }
 
-    public function getListViewsSql()
-    {
-        return "SELECT name, sql FROM sqlite_master WHERE type='view' AND sql NOT NULL";
-    }
-
-    public function getCreateViewSql($name, $sql)
+    public function getCreateViewSQL($name, $sql)
     {
         return 'CREATE VIEW ' . $name . ' AS ' . $sql;
     }
 
-    public function getDropViewSql($name)
+    public function getDropViewSQL($name)
     {
         return 'DROP VIEW '. $name;
     }
@@ -442,11 +378,6 @@ class SqlitePlatform extends AbstractPlatform
         return false;
     }
 
-    public function supportsSequences()
-    {
-        return false;
-    }
-
     /**
      * Get the platform name for this instance
      *
@@ -455,5 +386,46 @@ class SqlitePlatform extends AbstractPlatform
     public function getName()
     {
         return 'sqlite';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getTruncateTableSQL($tableName, $cascade = false)
+    {
+        return 'DELETE FROM '.$tableName;
+    }
+
+    /**
+     * User-defined function for Sqlite that is used with PDO::sqliteCreateFunction()
+     *
+     * @param  int|float $value
+     * @return float
+     */
+    static public function udfSqrt($value)
+    {
+        return sqrt($value);
+    }
+
+    /**
+     * User-defined function for Sqlite that implements MOD(a, b)
+     */
+    static public function udfMod($a, $b)
+    {
+        return ($a % $b);
+    }
+
+    /**
+     * @param string $str
+     * @param string $substr
+     * @param int $offset
+     */
+    static public function udfLocate($str, $substr, $offset = 0)
+    {
+        $pos = strpos($str, $substr, $offset);
+        if ($pos !== false) {
+            return $pos+1;
+        }
+        return 0;
     }
 }

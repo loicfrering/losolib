@@ -21,7 +21,6 @@
 
 namespace Doctrine\DBAL;
 
-use Doctrine\Common\DoctrineException;
 use Doctrine\Common\EventManager;
 
 /**
@@ -48,10 +47,7 @@ final class DriverManager
             );
 
     /** Private constructor. This class cannot be instantiated. */
-    public function __construct()
-    {
-        throw \Doctrine\Common\DoctrineException::driverManagerCannotBeInstantiated();
-    }
+    private function __construct() { }
 
     /**
      * Creates a connection object based on the specified parameters.
@@ -110,7 +106,7 @@ final class DriverManager
         
         // check for existing pdo object
         if (isset($params['pdo']) && ! $params['pdo'] instanceof \PDO) {
-            throw DoctrineException::invalidPdoInstance();
+            throw DBALException::invalidPdoInstance();
         } else if (isset($params['pdo'])) {
             $params['driver'] = 'pdo_' . $params['pdo']->getAttribute(\PDO::ATTR_DRIVER_NAME);
         } else {
@@ -125,8 +121,12 @@ final class DriverManager
         $driver = new $className();
         
         $wrapperClass = 'Doctrine\DBAL\Connection';
-        if (isset($params['wrapperClass']) && is_subclass_of($params['wrapperClass'], $wrapperClass)) {
-            $wrapperClass = $params['wrapperClass'];
+        if (isset($params['wrapperClass'])) {
+            if (is_subclass_of($params['wrapperClass'], $wrapperClass)) {
+               $wrapperClass = $params['wrapperClass'];
+            } else {
+                throw DBALException::invalidWrapperClass($params['wrapperClass']);
+            }
         }
         
         return new $wrapperClass($params, $driver, $config, $eventManager);
@@ -143,14 +143,18 @@ final class DriverManager
         
         // driver
         if ( ! isset($params['driver']) && ! isset($params['driverClass'])) {
-            throw DoctrineException::driverRequired();
+            throw DBALException::driverRequired();
         }
         
         // check validity of parameters
         
         // driver
         if ( isset($params['driver']) && ! isset(self::$_driverMap[$params['driver']])) {
-            throw DoctrineException::unknownDriver($params['driver']);
+            throw DBALException::unknownDriver($params['driver'], array_keys(self::$_driverMap));
+        }
+
+        if (isset($params['driverClass']) && ! in_array('Doctrine\DBAL\Driver', class_implements($params['driverClass'], true))) {
+            throw DBALException::invalidDriverClass($params['driverClass']);
         }
     }
 }

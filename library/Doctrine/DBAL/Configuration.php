@@ -1,7 +1,5 @@
 <?php 
 /*
- *  $Id$
- *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -21,19 +19,15 @@
 
 namespace Doctrine\DBAL;
 
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Logging\SQLLogger;
 
 /**
  * Configuration container for the Doctrine DBAL.
  *
- * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
- * @link    www.doctrine-project.org
  * @since   2.0
- * @version $Revision: 3938 $
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
  * @author  Jonathan Wage <jonwage@gmail.com>
  * @author  Roman Borschel <roman@code-factory.org>
- *
  * @internal When adding a new configuration option just write a getter/setter
  *           pair and add the option to the _attributes array with a proper default value.
  */
@@ -46,63 +40,25 @@ class Configuration
      * @var array
      */
     protected $_attributes = array();
-    
-    /**
-     * Creates a new DBAL configuration instance.
-     */
-    public function __construct()
-    {
-        $this->_attributes = array(
-            'sqlLogger' => null
-        );
-    }
-    
+
     /**
      * Sets the SQL logger to use. Defaults to NULL which means SQL logging is disabled.
      *
-     * @param SqlLogger $logger
+     * @param SQLLogger $logger
      */
-    public function setSqlLogger($logger)
+    public function setSQLLogger(SQLLogger $logger)
     {
         $this->_attributes['sqlLogger'] = $logger;
     }
-    
+
     /**
      * Gets the SQL logger that is used.
      * 
-     * @return SqlLogger
+     * @return SQLLogger
      */
-    public function getSqlLogger()
+    public function getSQLLogger()
     {
-        return $this->_attributes['sqlLogger'];
-    }
-
-    /**
-     * Defines new custom types to be supported by Doctrine
-     *
-     * @param array $types Key-value map of types to include
-     * @param boolean $override Optional flag to support only inclusion or also override
-     * @throws DoctrineException
-     */
-    public function setCustomTypes(array $types, $override = false)
-    {
-        foreach ($types as $name => $typeClassName) {
-            $method = (Type::hasType($name) && $override ? 'override' : 'add') . 'Type';
-            
-            Type::$method($name, $typeClassName);
-        }
-    }
-
-    /**
-     * Overrides existent types in Doctrine
-     *
-     * @param array $types Key-value map of types to override
-     * @throws DoctrineException
-     */
-    public function setTypeOverrides(array $overrides)
-    {
-        foreach ($override as $name => $typeClassName) {
-            Type::overrideType($name, $typeClassName);
-        }
+        return isset($this->_attributes['sqlLogger']) ?
+                $this->_attributes['sqlLogger'] : null;
     }
 }

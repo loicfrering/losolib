@@ -22,11 +22,12 @@
 namespace Doctrine\DBAL\Schema;
 
 /**
- * xxx
+ * Oracle Schema Manager
  *
  * @license     http://www.opensource.org/licenses/lgpl-license.php LGPL
  * @author      Konsta Vesterinen <kvesteri@cc.hut.fi>
  * @author      Lukas Smith <smith@pooteeweet.org> (PEAR MDB2 library)
+ * @author      Benjamin Eberlei <kontakt@beberlei.de>
  * @version     $Revision$
  * @since       2.0
  */
@@ -36,10 +37,7 @@ class OracleSchemaManager extends AbstractSchemaManager
     {
         $view = \array_change_key_case($view, CASE_LOWER);
 
-        return array(
-            'name' => $view['view_name'],
-            'sql' => '',
-        );
+        return new View($view['view_name'], $view['text']);
     }
 
     protected function _getPortableUserDefinition($user)
@@ -198,11 +196,15 @@ class OracleSchemaManager extends AbstractSchemaManager
         foreach ($tableForeignKeys as $key => $value) {
             $value = \array_change_key_case($value, CASE_LOWER);
             if (!isset($list[$value['constraint_name']])) {
+                if ($value['delete_rule'] == "NO ACTION") {
+                    $value['delete_rule'] = null;
+                }
+
                 $list[$value['constraint_name']] = array(
                     'name' => $value['constraint_name'],
                     'local' => array(),
                     'foreign' => array(),
-                    'foreignTable' => $value['table_name'],
+                    'foreignTable' => $value['references_table'],
                     'onDelete' => $value['delete_rule'],
                 );
             }
@@ -226,12 +228,6 @@ class OracleSchemaManager extends AbstractSchemaManager
     {
         $sequence = \array_change_key_case($sequence, CASE_LOWER);
         return new Sequence($sequence['sequence_name'], $sequence['increment_by'], $sequence['min_value']);
-    }
-
-    protected function _getPortableTableConstraintDefinition($tableConstraint)
-    {
-        $tableConstraint = \array_change_key_case($tableConstraint, CASE_LOWER);
-        return $tableConstraint['constraint_name'];
     }
 
     protected function _getPortableFunctionDefinition($function)

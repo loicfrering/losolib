@@ -1,7 +1,5 @@
 <?php
 /*
- *  $Id$
- *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -29,10 +27,8 @@ use \ReflectionClass,
 /**
  * A reader for docblock annotations.
  * 
- * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
- * @link    www.doctrine-project.org
  * @since   2.0
- * @version $Revision: 3938 $
+ * @author  Benjamin Eberlei <kontakt@beberlei.de>
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
  * @author  Jonathan Wage <jonwage@gmail.com>
  * @author  Roman Borschel <roman@code-factory.org>
@@ -45,7 +41,7 @@ class AnnotationReader
      * @var string
      * @static
      */
-    private static $CACHE_SALT = "@<Annot>";
+    private static $CACHE_SALT = '@<Annot>';
     
     /**
      * Annotations Parser
@@ -55,24 +51,23 @@ class AnnotationReader
     private $_parser;
     
     /**
-     * Cache machanism to store processed Annotations
+     * Cache mechanism to store processed Annotations
      *
      * @var Doctrine\Common\Cache\Cache
      */
     private $_cache;
     
     /**
-     * Constructor. Initializes a new AnnotationReader that uses the given 
-     * Cache provider.
+     * Constructor. Initializes a new AnnotationReader that uses the given Cache provider.
      * 
-     * @param Cache $cache The cache provider to use.
+     * @param Cache $cache The cache provider to use. If none is provided, ArrayCache is used.
      */
-    public function __construct(Cache $cache)
+    public function __construct(Cache $cache = null)
     {
         $this->_parser = new Parser;
-        $this->_cache = $cache;
+        $this->_cache = $cache ?: new \Doctrine\Common\Cache\ArrayCache;
     }
-    
+
     /**
      * Sets the default namespace that the AnnotationReader should assume for annotations
      * with not fully qualified names.
@@ -83,7 +78,18 @@ class AnnotationReader
     {
         $this->_parser->setDefaultAnnotationNamespace($defaultNamespace);
     }
-    
+
+    /**
+     * Sets an alias for an annotation namespace.
+     * 
+     * @param $namespace
+     * @param $alias
+     */
+    public function setAnnotationNamespaceAlias($namespace, $alias)
+    {
+        $this->_parser->setAnnotationNamespaceAlias($namespace, $alias);
+    }
+
     /**
      * Gets the annotations applied to a class.
      * 
@@ -94,12 +100,13 @@ class AnnotationReader
     public function getClassAnnotations(ReflectionClass $class)
     {
         $cacheKey = $class->getName() . self::$CACHE_SALT;
-        
-        if ($this->_cache->contains($cacheKey)) {
-            return $this->_cache->fetch($cacheKey);
+
+        // Attempt to grab data from cache
+        if (($data = $this->_cache->fetch($cacheKey)) !== false) {
+            return $data;
         }
         
-        $annotations = $this->_parser->parse($class->getDocComment(), "class ".$class->getName());
+        $annotations = $this->_parser->parse($class->getDocComment(), 'class ' . $class->getName());
         $this->_cache->save($cacheKey, $annotations, null);
         
         return $annotations;
@@ -115,6 +122,7 @@ class AnnotationReader
     public function getClassAnnotation(ReflectionClass $class, $annotation)
     {
         $annotations = $this->getClassAnnotations($class);
+
         return isset($annotations[$annotation]) ? $annotations[$annotation] : null;
     }
     
@@ -129,12 +137,13 @@ class AnnotationReader
     public function getPropertyAnnotations(ReflectionProperty $property)
     {
         $cacheKey = $property->getDeclaringClass()->getName() . '$' . $property->getName() . self::$CACHE_SALT;
-        
-        if ($this->_cache->contains($cacheKey)) {
-            return $this->_cache->fetch($cacheKey);
-        }
 
-        $context = "property ".$property->getDeclaringClass()->getName()."::\$".$property->getName();
+        // Attempt to grab data from cache
+        if (($data = $this->_cache->fetch($cacheKey)) !== false) {
+            return $data;
+        }
+        
+        $context = 'property ' . $property->getDeclaringClass()->getName() . "::\$" . $property->getName();
         $annotations = $this->_parser->parse($property->getDocComment(), $context);
         $this->_cache->save($cacheKey, $annotations, null);
         
@@ -151,6 +160,7 @@ class AnnotationReader
     public function getPropertyAnnotation(ReflectionProperty $property, $annotation)
     {
         $annotations = $this->getPropertyAnnotations($property);
+
         return isset($annotations[$annotation]) ? $annotations[$annotation] : null;
     }
     
@@ -165,12 +175,13 @@ class AnnotationReader
     public function getMethodAnnotations(ReflectionMethod $method)
     {
         $cacheKey = $method->getDeclaringClass()->getName() . '#' . $method->getName() . self::$CACHE_SALT;
-        
-        if ($this->_cache->contains($cacheKey)) {
-            return $this->_cache->fetch($cacheKey);
+
+        // Attempt to grab data from cache
+        if (($data = $this->_cache->fetch($cacheKey)) !== false) {
+            return $data;
         }
 
-        $context = "method ".$method->getDeclaringClass()->getName()."::".$method->getName()."()";
+        $context = 'method ' . $method->getDeclaringClass()->getName() . '::' . $method->getName() . '()';
         $annotations = $this->_parser->parse($method->getDocComment(), $context);
         $this->_cache->save($cacheKey, $annotations, null);
         
@@ -187,6 +198,7 @@ class AnnotationReader
     public function getMethodAnnotation(ReflectionMethod $method, $annotation)
     {
         $annotations = $this->getMethodAnnotations($method);
+        
         return isset($annotations[$annotation]) ? $annotations[$annotation] : null;
     }
 }

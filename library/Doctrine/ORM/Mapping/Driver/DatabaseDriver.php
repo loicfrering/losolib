@@ -21,8 +21,7 @@
 
 namespace Doctrine\ORM\Mapping\Driver;
 
-use Doctrine\Common\DoctrineException,
-    Doctrine\Common\Cache\ArrayCache,
+use Doctrine\Common\Cache\ArrayCache,
     Doctrine\Common\Annotations\AnnotationReader,
     Doctrine\DBAL\Schema\AbstractSchemaManager,
     Doctrine\ORM\Mapping\ClassMetadataInfo,
@@ -30,7 +29,7 @@ use Doctrine\Common\DoctrineException,
     Doctrine\Common\Util\Inflector;
 
 /**
- * The DatabaseDriver reverse engineers the mapping metadata from a database
+ * The DatabaseDriver reverse engineers the mapping metadata from a database.
  *
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  * @link    www.doctrine-project.org
@@ -64,11 +63,11 @@ class DatabaseDriver implements Driver
         $className = Inflector::classify($tableName);
 
         $metadata->name = $className;
-        $metadata->primaryTable['name'] = $tableName;
+        $metadata->table['name'] = $tableName;
 
         $columns = $this->_sm->listTableColumns($tableName);
         
-        if($this->_sm->getDatabasePlatform()->supportsForeignKeyConstraints()) {
+        if ($this->_sm->getDatabasePlatform()->supportsForeignKeyConstraints()) {
             $foreignKeys = $this->_sm->listTableForeignKeys($tableName);
         } else {
             $foreignKeys = array();
@@ -91,7 +90,7 @@ class DatabaseDriver implements Driver
                 $fieldMapping['id'] = true;
             }
 
-            $fieldMapping['fieldName'] = Inflector::camelize($column->getName());
+            $fieldMapping['fieldName'] = Inflector::camelize(strtolower($column->getName()));
             $fieldMapping['columnName'] = $column->getName();
             $fieldMapping['type'] = strtolower((string) $column->getType());
 
@@ -102,7 +101,6 @@ class DatabaseDriver implements Driver
                 $fieldMapping['unsigned'] = $column->getUnsigned();
             }
             $fieldMapping['notnull'] = $column->getNotNull();
-            $fieldMapping['default'] = $column->getDefault();
 
             if (isset($fieldMapping['id'])) {
                 $ids[] = $fieldMapping;
@@ -126,42 +124,28 @@ class DatabaseDriver implements Driver
         }
 
         foreach ($foreignKeys as $foreignKey) {
-            if (count($foreignKey->getColumns()) != 1) {
-                throw new MappingException(
-                    "Cannot generate mapping for table '".$tableName."' with foreign keys with multiple local columns."
-                );
-            }
             $cols = $foreignKey->getColumns();
             $localColumn = current($cols);
 
             $fkCols = $foreignKey->getForeignColumns();
-            if (count($fkCols) != 1) {
-                throw new MappingException(
-                    "Cannot generate mapping for table '".$tableName."' with foreign keys with multiple foreign columns."
-                );
-            }
-            $foreignColumn = current($fkCols);
 
             $associationMapping = array();
             $associationMapping['fieldName'] = Inflector::camelize(str_ireplace('_id', '', $localColumn));
-            $associationMapping['columnName'] = $localColumn;
             $associationMapping['targetEntity'] = Inflector::classify($foreignKey->getForeignTableName());
-            $associationMapping['joinColumns'][] = array(
-                'name' => $localColumn,
-                'referencedColumnName' => $foreignColumn
-            );
+
+            for ($i = 0; $i < count($cols); $i++) {
+                $associationMapping['joinColumns'][] = array(
+                    'name' => $cols[$i],
+                    'referencedColumnName' => $fkCols[$i],
+                );
+            }
 
             $metadata->mapManyToOne($associationMapping);
         }
     }
 
     /**
-     * Whether the class with the specified name should have its metadata loaded.
-     * This is only the case if it is either mapped as an Entity or a
-     * MappedSuperclass.
-     *
-     * @param string $className
-     * @return boolean
+     * {@inheritdoc}
      */
     public function isTransient($className)
     {
@@ -173,11 +157,12 @@ class DatabaseDriver implements Driver
      */
     public function getAllClassNames()
     {
-        $tables = array();
+        $classes = array();
+        
         foreach ($this->_sm->listTables() as $table) {
-            $tables[] = $table->getName();
+            $classes[] = $table->getName(); // TODO: Why is this not correct? Inflector::classify($table->getName());
         }
 
-        return $tables;
+        return $classes;
     }
 }

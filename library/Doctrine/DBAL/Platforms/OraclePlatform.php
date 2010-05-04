@@ -34,14 +34,6 @@ use Doctrine\DBAL\Schema\TableDiff;
 class OraclePlatform extends AbstractPlatform
 {
     /**
-     * Constructor.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * return string to call a function to get a substring inside an SQL statement
      *
      * Note: Not SQL92, but common functionality.
@@ -83,14 +75,20 @@ class OraclePlatform extends AbstractPlatform
     }
 
     /**
-     * random
+     * returns the position of the first occurrence of substring $substr in string $str
      *
-     * @return string           an oracle SQL string that generates a float between 0 and 1
-     * @override
+     * @param string $substr    literal string to find
+     * @param string $str       literal string
+     * @param int    $pos       position to start at, beginning of string by default
+     * @return integer
      */
-    public function getRandomExpression()
+    public function getLocateExpression($str, $substr, $startPos = false)
     {
-        return 'dbms_random.value';
+        if ($startPos == false) {
+            return 'INSTR('.$str.', '.$substr.')';
+        } else {
+            return 'INSTR('.$str.', '.$substr.', '.$startPos.')';
+        }
     }
 
     /**
@@ -113,9 +111,9 @@ class OraclePlatform extends AbstractPlatform
      * in {@see listSequences()}
      *
      * @param \Doctrine\DBAL\Schema\Sequence $sequence
-     * @throws DoctrineException
+     * @return string
      */
-    public function getCreateSequenceSql(\Doctrine\DBAL\Schema\Sequence $sequence)
+    public function getCreateSequenceSQL(\Doctrine\DBAL\Schema\Sequence $sequence)
     {
         return 'CREATE SEQUENCE ' . $sequence->getName() .
                ' START WITH ' . $sequence->getInitialValue() .
@@ -129,7 +127,7 @@ class OraclePlatform extends AbstractPlatform
      * @param string $sequenceName
      * @override
      */
-    public function getSequenceNextValSql($sequenceName)
+    public function getSequenceNextValSQL($sequenceName)
     {
         return 'SELECT ' . $sequenceName . '.nextval FROM DUAL';
     }
@@ -140,12 +138,12 @@ class OraclePlatform extends AbstractPlatform
      * @param integer $level
      * @override
      */
-    public function getSetTransactionIsolationSql($level)
+    public function getSetTransactionIsolationSQL($level)
     {
-        return 'SET TRANSACTION ISOLATION LEVEL ' . $this->_getTransactionIsolationLevelSql($level);
+        return 'SET TRANSACTION ISOLATION LEVEL ' . $this->_getTransactionIsolationLevelSQL($level);
     }
 
-    protected function _getTransactionIsolationLevelSql($level)
+    protected function _getTransactionIsolationLevelSQL($level)
     {
         switch ($level) {
             case \Doctrine\DBAL\Connection::TRANSACTION_READ_UNCOMMITTED:
@@ -156,14 +154,14 @@ class OraclePlatform extends AbstractPlatform
             case \Doctrine\DBAL\Connection::TRANSACTION_SERIALIZABLE:
                 return 'SERIALIZABLE';
             default:
-                return parent::_getTransactionIsolationLevelSql($level);
+                return parent::_getTransactionIsolationLevelSQL($level);
         }
     }
     
     /**
      * @override
      */
-    public function getBooleanTypeDeclarationSql(array $field)
+    public function getBooleanTypeDeclarationSQL(array $field)
     {
         return 'NUMBER(1)';
     }
@@ -171,7 +169,7 @@ class OraclePlatform extends AbstractPlatform
     /**
      * @override
      */
-    public function getIntegerTypeDeclarationSql(array $field)
+    public function getIntegerTypeDeclarationSQL(array $field)
     {
         return 'NUMBER(10)';
     }
@@ -179,7 +177,7 @@ class OraclePlatform extends AbstractPlatform
     /**
      * @override
      */
-    public function getBigIntTypeDeclarationSql(array $field)
+    public function getBigIntTypeDeclarationSQL(array $field)
     {
         return 'NUMBER(20)';
     }
@@ -187,7 +185,7 @@ class OraclePlatform extends AbstractPlatform
     /**
      * @override
      */
-    public function getSmallIntTypeDeclarationSql(array $field)
+    public function getSmallIntTypeDeclarationSQL(array $field)
     {
         return 'NUMBER(5)';
     }
@@ -195,7 +193,7 @@ class OraclePlatform extends AbstractPlatform
     /**
      * @override
      */
-    public function getDateTimeTypeDeclarationSql(array $fieldDeclaration)
+    public function getDateTimeTypeDeclarationSQL(array $fieldDeclaration)
     {
         return 'TIMESTAMP(0) WITH TIME ZONE';
     }
@@ -203,7 +201,7 @@ class OraclePlatform extends AbstractPlatform
     /**
      * @override
      */
-    public function getDateTypeDeclarationSql(array $fieldDeclaration)
+    public function getDateTypeDeclarationSQL(array $fieldDeclaration)
     {
         return 'DATE';
     }
@@ -211,7 +209,7 @@ class OraclePlatform extends AbstractPlatform
     /**
      * @override
      */
-    public function getTimeTypeDeclarationSql(array $fieldDeclaration)
+    public function getTimeTypeDeclarationSQL(array $fieldDeclaration)
     {
         return 'DATE';
     }
@@ -219,7 +217,7 @@ class OraclePlatform extends AbstractPlatform
     /**
      * @override
      */
-    protected function _getCommonIntegerTypeDeclarationSql(array $columnDef)
+    protected function _getCommonIntegerTypeDeclarationSQL(array $columnDef)
     {
         return '';
     }
@@ -230,7 +228,7 @@ class OraclePlatform extends AbstractPlatform
      * @params array $field
      * @override
      */
-    public function getVarcharTypeDeclarationSql(array $field)
+    public function getVarcharTypeDeclarationSQL(array $field)
     {
         if ( ! isset($field['length'])) {
             if (array_key_exists('default', $field)) {
@@ -248,22 +246,17 @@ class OraclePlatform extends AbstractPlatform
     }
     
     /** @override */
-    public function getClobTypeDeclarationSql(array $field)
+    public function getClobTypeDeclarationSQL(array $field)
     {
         return 'CLOB';
     }
 
-    public function getListDatabasesSql()
+    public function getListDatabasesSQL()
     {
         return 'SELECT username FROM all_users';
     }
 
-    public function getListFunctionsSql()
-    {
-        return "SELECT name FROM sys.user_source WHERE line = 1 AND type = 'FUNCTION'";
-    }
-
-    public function getListSequencesSql($database)
+    public function getListSequencesSQL($database)
     {
         return "SELECT sequence_name, min_value, increment_by FROM sys.all_sequences ".
                "WHERE SEQUENCE_OWNER = '".strtoupper($database)."'";
@@ -276,15 +269,15 @@ class OraclePlatform extends AbstractPlatform
      * @param array $options
      * @return array
      */
-    protected function _getCreateTableSql($table, array $columns, array $options = array())
+    protected function _getCreateTableSQL($table, array $columns, array $options = array())
     {
         $indexes = isset($options['indexes']) ? $options['indexes'] : array();
         $options['indexes'] = array();
-        $sql = parent::_getCreateTableSql($table, $columns, $options);
+        $sql = parent::_getCreateTableSQL($table, $columns, $options);
 
         foreach ($columns as $name => $column) {
             if (isset($column['sequence'])) {
-                $sql[] = $this->getCreateSequenceSql($column['sequence'], 1);
+                $sql[] = $this->getCreateSequenceSQL($column['sequence'], 1);
             }
 
             if (isset($column['autoincrement']) && $column['autoincrement'] ||
@@ -295,7 +288,7 @@ class OraclePlatform extends AbstractPlatform
         
         if (isset($indexes) && ! empty($indexes)) {
             foreach ($indexes as $indexName => $index) {
-                $sql[] = $this->getCreateIndexSql($index, $table);
+                $sql[] = $this->getCreateIndexSQL($index, $table);
             }
         }
 
@@ -308,7 +301,7 @@ class OraclePlatform extends AbstractPlatform
      * @param  string $table
      * @return string
      */
-    public function getListTableIndexesSql($table)
+    public function getListTableIndexesSQL($table)
     {
         $table = strtoupper($table);
         
@@ -322,27 +315,22 @@ class OraclePlatform extends AbstractPlatform
              "WHERE uind.index_name = uind_col.index_name AND uind_col.table_name = '$table' ORDER BY uind_col.column_position ASC";
     }
 
-    public function getListTablesSql()
+    public function getListTablesSQL()
     {
         return 'SELECT * FROM sys.user_tables';
     }
 
-    public function getListUsersSql()
+    public function getListViewsSQL($database)
     {
-        return 'SELECT * FROM all_users';
+        return 'SELECT view_name, text FROM sys.user_views';
     }
 
-    public function getListViewsSql()
-    {
-        return 'SELECT view_name FROM sys.user_views';
-    }
-
-    public function getCreateViewSql($name, $sql)
+    public function getCreateViewSQL($name, $sql)
     {
         return 'CREATE VIEW ' . $name . ' AS ' . $sql;
     }
 
-    public function getDropViewSql($name)
+    public function getDropViewSQL($name)
     {
         return 'DROP VIEW '. $name;
     }
@@ -365,13 +353,13 @@ class OraclePlatform extends AbstractPlatform
 BEGIN
   SELECT COUNT(CONSTRAINT_NAME) INTO constraints_Count FROM USER_CONSTRAINTS WHERE TABLE_NAME = \''.$table.'\' AND CONSTRAINT_TYPE = \'P\';
   IF constraints_Count = 0 OR constraints_Count = \'\' THEN
-    EXECUTE IMMEDIATE \''.$this->getCreateConstraintSql($idx, $table).'\';
+    EXECUTE IMMEDIATE \''.$this->getCreateConstraintSQL($idx, $table).'\';
   END IF;
 END;';   
 
         $sequenceName = $table . '_SEQ';
         $sequence = new \Doctrine\DBAL\Schema\Sequence($sequenceName, $start);
-        $sql[] = $this->getCreateSequenceSql($sequence);
+        $sql[] = $this->getCreateSequenceSQL($sequence);
 
         $triggerName  = $table . '_AI_PK';
         $sql[] = 'CREATE TRIGGER ' . $triggerName . '
@@ -405,40 +393,49 @@ END;';
 
         if ($trigger) {
             $sql[] = 'DROP TRIGGER ' . $trigger;
-            $sql[] = $this->getDropSequenceSql($table.'_SEQ');
+            $sql[] = $this->getDropSequenceSQL($table.'_SEQ');
 
             $indexName = $table . '_AI_PK';
-            $sql[] = $this->getDropConstraintSql($indexName, $table);
+            $sql[] = $this->getDropConstraintSQL($indexName, $table);
         }
 
         return $sql;
     }
 
-    public function getListTableForeignKeysSql($table)
+    public function getListTableForeignKeysSQL($table)
     {
         $table = strtoupper($table);
 
-        return "SELECT rel.constraint_name, rel.position, col.column_name AS local_column, ".
-               "     rel.table_name, rel.column_name AS foreign_column, cc.delete_rule ".
-               "FROM (user_tab_columns col ".
-               "JOIN user_cons_columns con ".
-               "  ON col.table_name = con.table_name ".
-               " AND col.column_name = con.column_name ".
-               "JOIN user_constraints cc ".
-               "  ON con.constraint_name = cc.constraint_name ".
-               "JOIN user_cons_columns rel ".
-               "  ON cc.r_constraint_name = rel.constraint_name ".
-               " AND con.position = rel.position) ".
-               "WHERE cc.constraint_type = 'R' AND col.table_name = '".$table."'";
+        return "SELECT alc.constraint_name,
+          alc.DELETE_RULE,
+          alc.search_condition,
+          cols.column_name \"local_column\",
+          cols.position,
+          r_alc.table_name \"references_table\",
+          r_cols.column_name \"foreign_column\"
+     FROM all_cons_columns cols
+LEFT JOIN all_constraints alc
+       ON alc.constraint_name = cols.constraint_name
+      AND alc.owner = cols.owner
+LEFT JOIN all_constraints r_alc
+       ON alc.r_constraint_name = r_alc.constraint_name
+      AND alc.r_owner = r_alc.owner
+LEFT JOIN all_cons_columns r_cols
+       ON r_alc.constraint_name = r_cols.constraint_name
+      AND r_alc.owner = r_cols.owner
+      AND cols.position = r_cols.position
+    WHERE alc.constraint_name = cols.constraint_name
+      AND alc.constraint_type = 'R'
+      AND alc.table_name = '".$table."'";
     }
 
-    public function getListTableConstraintsSql($table)
+    public function getListTableConstraintsSQL($table)
     {
         $table = strtoupper($table);
         return 'SELECT * FROM user_constraints WHERE table_name = \'' . $table . '\'';
     }
 
-    public function getListTableColumnsSql($table)
+    public function getListTableColumnsSQL($table)
     {
         $table = strtoupper($table);
         return "SELECT * FROM all_tab_columns WHERE table_name = '" . $table . "' ORDER BY column_name";
@@ -449,7 +446,7 @@ END;';
      * @param  \Doctrine\DBAL\Schema\Sequence $sequence
      * @return string
      */
-    public function getDropSequenceSql($sequence)
+    public function getDropSequenceSQL($sequence)
     {
         if ($sequence instanceof \Doctrine\DBAL\Schema\Sequence) {
             $sequence = $sequence->getName();
@@ -458,7 +455,25 @@ END;';
         return 'DROP SEQUENCE ' . $sequence;
     }
 
-    public function getDropDatabaseSql($database)
+    /**
+     * @param  ForeignKeyConstraint|string $foreignKey
+     * @param  Table|string $table
+     * @return string
+     */
+    public function getDropForeignKeySQL($foreignKey, $table)
+    {
+        if ($foreignKey instanceof \Doctrine\DBAL\Schema\ForeignKeyConstraint) {
+            $foreignKey = $foreignKey->getName();
+        }
+
+        if ($table instanceof \Doctrine\DBAL\Schema\Table) {
+            $table = $table->getName();
+        }
+
+        return 'ALTER TABLE ' . $table . ' DROP CONSTRAINT ' . $foreignKey;
+    }
+
+    public function getDropDatabaseSQL($database)
     {
         return 'DROP USER ' . $database . ' CASCADE';
     }
@@ -475,13 +490,13 @@ END;';
      *                              actually perform them otherwise.
      * @return array
      */
-    public function getAlterTableSql(TableDiff $diff)
+    public function getAlterTableSQL(TableDiff $diff)
     {
         $sql = array();
 
         $fields = array();
         foreach ($diff->addedColumns AS $column) {
-            $fields[] = $this->getColumnDeclarationSql($column->getName(), $column->toArray());
+            $fields[] = $this->getColumnDeclarationSQL($column->getName(), $column->toArray());
         }
         if (count($fields)) {
             $sql[] = 'ALTER TABLE ' . $diff->name . ' ADD (' . implode(', ', $fields) . ')';
@@ -490,7 +505,7 @@ END;';
         $fields = array();
         foreach ($diff->changedColumns AS $columnDiff) {
             $column = $columnDiff->column;
-            $fields[] = $column->getName(). ' ' . $this->getColumnDeclarationSql('', $column->toArray());
+            $fields[] = $column->getName(). ' ' . $this->getColumnDeclarationSQL('', $column->toArray());
         }
         if (count($fields)) {
             $sql[] = 'ALTER TABLE ' . $diff->name . ' MODIFY (' . implode(', ', $fields) . ')';
@@ -512,7 +527,7 @@ END;';
             $sql[] = 'ALTER TABLE ' . $diff->name . ' RENAME TO ' . $diff->newName;
         }
 
-        $sql = array_merge($sql, $this->_getAlterTableIndexForeignKeySql($diff));
+        $sql = array_merge($sql, $this->_getAlterTableIndexForeignKeySQL($diff));
 
         return $sql;
     }
@@ -579,12 +594,12 @@ END;';
      * @param string $column The column name for which to get the correct character casing.
      * @return string The column name in the character casing used in SQL result sets.
      */
-    public function getSqlResultCasing($column)
+    public function getSQLResultCasing($column)
     {
         return strtoupper($column);
     }
     
-    public function getCreateTemporaryTableSnippetSql()
+    public function getCreateTemporaryTableSnippetSQL()
     {
         return "CREATE GLOBAL TEMPORARY TABLE";
     }
@@ -626,5 +641,13 @@ END;';
     public function supportsForeignKeyOnUpdate()
     {
         return false;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getTruncateTableSQL($tableName, $cascade = false)
+    {
+        return 'TRUNCATE TABLE '.$tableName;
     }
 }

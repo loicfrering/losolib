@@ -30,9 +30,11 @@ use \Memcache;
  * @link    www.doctrine-project.org
  * @since   2.0
  * @version $Revision: 3938 $
+ * @author  Benjamin Eberlei <kontakt@beberlei.de>
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
  * @author  Jonathan Wage <jonwage@gmail.com>
  * @author  Roman Borschel <roman@code-factory.org>
+ * @author  David Abdemoulaie <dave@hobodave.com>
  */
 class MemcacheCache extends AbstractCache
 {
@@ -64,7 +66,33 @@ class MemcacheCache extends AbstractCache
     /**
      * {@inheritdoc}
      */
-    protected function _doFetch($id) 
+    public function getIds()
+    {
+        $keys = array();
+        $allSlabs = $this->_memcache->getExtendedStats('slabs');
+
+        foreach ($allSlabs as $server => $slabs) {
+            if (is_array($slabs)) {
+                foreach (array_keys($slabs) as $slabId) {
+                    $dump = $this->_memcache->getExtendedStats('cachedump', (int) $slabId);
+
+                    if ($dump) {
+                        foreach ($dump as $entries) {
+                            if ($entries) {
+                                $keys = array_merge($keys, array_keys($entries));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return $keys;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function _doFetch($id)
     {
         return $this->_memcache->get($id);
     }
@@ -72,7 +100,7 @@ class MemcacheCache extends AbstractCache
     /**
      * {@inheritdoc}
      */
-    protected function _doContains($id) 
+    protected function _doContains($id)
     {
         return (bool) $this->_memcache->get($id);
     }
@@ -80,15 +108,15 @@ class MemcacheCache extends AbstractCache
     /**
      * {@inheritdoc}
      */
-    protected function _doSave($id, $data, $lifeTime = false)
+    protected function _doSave($id, $data, $lifeTime = 0)
     {
-        return $this->_memcache->set($id, $data, 0, $lifeTime);
+        return $this->_memcache->set($id, $data, 0, (int) $lifeTime);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function _doDelete($id) 
+    protected function _doDelete($id)
     {
         return $this->_memcache->delete($id);
     }

@@ -1,7 +1,5 @@
 <?php
 /*
- *  $Id$
- *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -21,12 +19,10 @@
 
 namespace Doctrine\ORM\Mapping;
 
-use Doctrine\Common\DoctrineException;
-
 /**
  * A <tt>ClassMetadata</tt> instance holds all the object-relational mapping metadata
  * of an entity and it's associations.
- * 
+ *
  * Once populated, ClassMetadata instances are usually cached in a serialized form.
  *
  * <b>IMPORTANT NOTE:</b>
@@ -64,7 +60,7 @@ class ClassMetadataInfo
      * of <tt>Concrete Table Inheritance</tt>.
      */
     const INHERITANCE_TYPE_TABLE_PER_CLASS = 4;
-    
+
     /* The Id generator types. */
     /**
      * AUTO means the generator type will depend on what the used platform prefers.
@@ -116,12 +112,12 @@ class ClassMetadataInfo
     const CHANGETRACKING_NOTIFY = 3;
 
     /**
-     * The name of the entity class.
+     * READ-ONLY: The name of the entity class.
      */
     public $name;
 
     /**
-     * The namespace the entity class is contained in.
+     * READ-ONLY: The namespace the entity class is contained in.
      *
      * @var string
      * @todo Not really needed. Usage could be localized.
@@ -129,9 +125,9 @@ class ClassMetadataInfo
     public $namespace;
 
     /**
-     * The name of the entity class that is at the root of the entity inheritance
-     * hierarchy. If the entity is not part of an inheritance hierarchy this is the same
-     * as $_entityName.
+     * READ-ONLY: The name of the entity class that is at the root of the mapped entity inheritance
+     * hierarchy. If the entity is not part of a mapped inheritance hierarchy this is the same
+     * as {@link $entityName}.
      *
      * @var string
      */
@@ -144,101 +140,95 @@ class ClassMetadataInfo
      * @var string
      */
     public $customRepositoryClassName;
-    
+
     /**
-     * Whether this class describes the mapping of a mapped superclass.
-     * 
+     * READ-ONLY: Whether this class describes the mapping of a mapped superclass.
+     *
      * @var boolean
      */
     public $isMappedSuperclass = false;
 
     /**
-     * The names of the parent classes (ancestors).
-     * 
+     * READ-ONLY: The names of the parent classes (ancestors).
+     *
      * @var array
      */
     public $parentClasses = array();
 
     /**
-     * The names of all subclasses.
-     * 
+     * READ-ONLY: The names of all subclasses (descendants).
+     *
      * @var array
      */
     public $subClasses = array();
 
     /**
-     * The field names of all fields that are part of the identifier/primary key
+     * READ-ONLY: The field names of all fields that are part of the identifier/primary key
      * of the mapped entity class.
      *
      * @var array
      */
     public $identifier = array();
-    
+
     /**
-     * The inheritance mapping type used by the class.
+     * READ-ONLY: The inheritance mapping type used by the class.
      *
      * @var integer
      */
     public $inheritanceType = self::INHERITANCE_TYPE_NONE;
-    
+
     /**
-     * The Id generator type used by the class.
+     * READ-ONLY: The Id generator type used by the class.
      *
      * @var string
      */
     public $generatorType = self::GENERATOR_TYPE_NONE;
-    
+
     /**
-     * The field mappings of the class.
+     * READ-ONLY: The field mappings of the class.
      * Keys are field names and values are mapping definitions.
      *
      * The mapping definition array has the following values:
-     * 
+     *
      * - <b>fieldName</b> (string)
-     * The name of the field in the Entity. 
-     * 
-     * - <b>type</b> (object Doctrine\DBAL\Types\* or custom type)
-     * The type of the column. Can be one of Doctrine's portable types
-     * or a custom type.
-     * 
+     * The name of the field in the Entity.
+     *
+     * - <b>type</b> (string)
+     * The type name of the mapped field. Can be one of Doctrine's mapping types
+     * or a custom mapping type.
+     *
      * - <b>columnName</b> (string, optional)
      * The column name. Optional. Defaults to the field name.
-     * 
+     *
      * - <b>length</b> (integer, optional)
      * The database length of the column. Optional. Default value taken from
      * the type.
-     * 
+     *
      * - <b>id</b> (boolean, optional)
-     * Marks the field as the primary key of the Entity. Multiple fields of an
+     * Marks the field as the primary key of the entity. Multiple fields of an
      * entity can have the id attribute, forming a composite key.
-     * 
-     * - <b>idGenerator</b> (string, optional)
-     * Either: idGenerator => 'nameOfGenerator', usually only for TABLE/SEQUENCE generators
-     * Or: idGenerator => 'identity' or 'auto' or 'table' or 'sequence'
-     * Note that 'auto', 'table', 'sequence' and 'identity' are reserved names and
-     * therefore cant be used as a generator name!
-     * 
+     *
      * - <b>nullable</b> (boolean, optional)
      * Whether the column is nullable. Defaults to FALSE.
-     * 
+     *
      * - <b>columnDefinition</b> (string, optional, schema-only)
      * The SQL fragment that is used when generating the DDL for the column.
-     * 
+     *
      * - <b>precision</b> (integer, optional, schema-only)
      * The precision of a decimal column. Only valid if the column type is decimal.
-     * 
+     *
      * - <b>scale</b> (integer, optional, schema-only)
      * The scale of a decimal column. Only valid if the column type is decimal.
-     * 
+     *
      * - <b>unique (string, optional, schema-only)</b>
      * Whether a unique constraint should be generated for the column.
      *
      * @var array
-     */    
+     */
     public $fieldMappings = array();
-    
+
     /**
-     * An array of field names. Used to look up field names from column names.
+     * READ-ONLY: An array of field names. Used to look up field names from column names.
      * Keys are column names and values are field names.
      * This is the reverse lookup map of $_columnNames.
      *
@@ -247,7 +237,7 @@ class ClassMetadataInfo
     public $fieldNames = array();
 
     /**
-     * A map of field names to column names. Keys are field names and values column names.
+     * READ-ONLY: A map of field names to column names. Keys are field names and values column names.
      * Used to look up column names from field names.
      * This is the reverse lookup map of $_fieldNames.
      *
@@ -257,38 +247,29 @@ class ClassMetadataInfo
     public $columnNames = array();
 
     /**
-     * Whether to automatically OUTER JOIN subtypes when a basetype is queried.
-     *
-     * <b>This does only apply to the JOINED inheritance mapping strategy.</b>
-     *
-     * @var boolean
-     */
-    //public $joinSubclasses = true;
-
-    /**
-     * The discriminator value of this class.
+     * READ-ONLY: The discriminator value of this class.
      *
      * <b>This does only apply to the JOINED and SINGLE_TABLE inheritance mapping strategies
      * where a discriminator column is used.</b>
      *
      * @var mixed
-     * @see _discriminatorColumn
+     * @see discriminatorColumn
      */
     public $discriminatorValue;
-    
+
     /**
-     * The discriminator map of all mapped classes in the hierarchy.
+     * READ-ONLY: The discriminator map of all mapped classes in the hierarchy.
      *
      * <b>This does only apply to the JOINED and SINGLE_TABLE inheritance mapping strategies
      * where a discriminator column is used.</b>
      *
      * @var mixed
-     * @see _discriminatorColumn
+     * @see discriminatorColumn
      */
     public $discriminatorMap = array();
 
     /**
-     * The definition of the descriminator column used in JOINED and SINGLE_TABLE
+     * READ-ONLY: The definition of the descriminator column used in JOINED and SINGLE_TABLE
      * inheritance mappings.
      *
      * @var array
@@ -296,7 +277,7 @@ class ClassMetadataInfo
     public $discriminatorColumn;
 
     /**
-     * The primary table definition. The definition is an array with the
+     * READ-ONLY: The primary table definition. The definition is an array with the
      * following entries:
      *
      * name => <tableName>
@@ -305,55 +286,58 @@ class ClassMetadataInfo
      * uniqueConstraints => array
      *
      * @var array
+     * @todo Rename to just $table
      */
-    public $primaryTable;
+    public $table;
 
     /**
-     * The registered lifecycle callbacks for entities of this class.
+     * READ-ONLY: The registered lifecycle callbacks for entities of this class.
      *
      * @var array
      */
     public $lifecycleCallbacks = array();
-    
+
     /**
-     * The association mappings. All mappings, inverse and owning side.
+     * READ-ONLY: The association mappings of this class.
      *
      * @var array
      */
     public $associationMappings = array();
-    
+
     /**
-     * List of inverse association mappings, indexed by mappedBy field name.
-     *
-     * @var array
-     * @todo Remove! See http://www.doctrine-project.org/jira/browse/DDC-193
-     */
-    public $inverseMappings = array();
-    
-    /**
-     * Flag indicating whether the identifier/primary key of the class is composite.
+     * READ-ONLY: Flag indicating whether the identifier/primary key of the class is composite.
      *
      * @var boolean
      */
     public $isIdentifierComposite = false;
 
     /**
-     * The ID generator used for generating IDs for this class.
+     * READ-ONLY: The ID generator used for generating IDs for this class.
      *
      * @var AbstractIdGenerator
+     * @todo Remove
      */
     public $idGenerator;
 
     /**
-     * The definition of the sequence generator of this class. Only used for the
+     * READ-ONLY: The definition of the sequence generator of this class. Only used for the
      * SEQUENCE generation strategy.
+     * 
+     * The definition has the following structure:
+     * <code>
+     * array(
+     *     'sequenceName' => 'name',
+     *     'allocationSize' => 20,
+     *     'initialValue' => 1
+     * )
+     * </code>
      *
      * @var array
      */
     public $sequenceGeneratorDefinition;
 
     /**
-     * The definition of the table generator of this class. Only used for the
+     * READ-ONLY: The definition of the table generator of this class. Only used for the
      * TABLE generation strategy.
      *
      * @var array
@@ -361,30 +345,22 @@ class ClassMetadataInfo
     public $tableGeneratorDefinition;
 
     /**
-     * The policy used for change-tracking on entities of this class.
+     * READ-ONLY: The policy used for change-tracking on entities of this class.
      *
      * @var integer
      */
     public $changeTrackingPolicy = self::CHANGETRACKING_DEFERRED_IMPLICIT;
 
     /**
-     * A map of field names to class names, where the field names are association
-     * fields that have been inherited from another class and values are the names
-     * of the classes that define the association.
-     *
-     * @var array
-     */
-    public $inheritedAssociationFields = array();
-
-    /**
-     * A flag for whether or not instances of this class are to be versioned with optimistic locking.
+     * READ-ONLY: A flag for whether or not instances of this class are to be versioned
+     * with optimistic locking.
      *
      * @var boolean $isVersioned
      */
     public $isVersioned;
 
     /**
-     * The name of the field which is used for versioning in optimistic locking (if any).
+     * READ-ONLY: The name of the field which is used for versioning in optimistic locking (if any).
      *
      * @var mixed $versionField
      */
@@ -400,16 +376,6 @@ class ClassMetadataInfo
     {
         $this->name = $entityName;
         $this->rootEntityName = $entityName;
-    }
-
-    /**
-     * Gets the change tracking policy used by this class.
-     *
-     * @return integer
-     */
-    public function getChangeTrackingPolicy()
-    {
-        return $this->changeTrackingPolicy;
     }
 
     /**
@@ -453,50 +419,6 @@ class ClassMetadataInfo
     }
 
     /**
-     * Gets the name of the mapped class.
-     *
-     * @return string
-     */
-    public function getClassName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * Gets the name of the class in the entity hierarchy that owns the field with
-     * the given name. The owning class is the one that defines the field.
-     *
-     * @param string $fieldName
-     * @return string
-     */
-    /*public function getOwningClass($fieldName)
-    {
-        if ($this->inheritanceType == self::INHERITANCE_TYPE_NONE) {
-            return $this->name;
-        } else {
-            $mapping = $this->getFieldMapping($fieldName);
-            return $mapping['inherited'];
-        }
-    }*/
-
-    /**
-     * Gets the name of the root class of the mapped entity hierarchy. If the entity described
-     * by this ClassMetadata instance is not participating in a hierarchy, this is the same as the
-     * name returned by {@link getClassName()}.
-     *
-     * @return string The name of the root class of the entity hierarchy.
-     */
-    public function getRootClassName()
-    {
-        return $this->rootEntityName;
-    }
-    
-    public function setResultColumnNames(array $resultColumnNames)
-    {
-        $this->resultColumnNames = $resultColumnNames;
-    }
-
-    /**
      * Checks whether a field is part of the identifier/primary key field(s).
      *
      * @param string $fieldName  The field name
@@ -509,17 +431,6 @@ class ClassMetadataInfo
             return $fieldName === $this->identifier[0];
         }
         return in_array($fieldName, $this->identifier);
-    }
-
-    /**
-     * Checks if the class has a composite identifier.
-     *
-     * @param string $fieldName  The field name
-     * @return boolean  TRUE if the identifier is composite, FALSE otherwise.
-     */
-    public function isIdentifierComposite()
-    {
-        return $this->isIdentifierComposite;
     }
 
     /**
@@ -580,7 +491,7 @@ class ClassMetadataInfo
         }
         return $this->fieldMappings[$fieldName];
     }
-    
+
     /**
      * Gets the mapping of an association.
      *
@@ -595,53 +506,13 @@ class ClassMetadataInfo
         }
         return $this->associationMappings[$fieldName];
     }
-    
-    /**
-     * Gets the inverse association mapping for the given target class name and
-     * owning fieldname.
-     *
-     * @param string $mappedByFieldName The field on the 
-     * @return Doctrine\ORM\Mapping\AssociationMapping The mapping or NULL if there is no such
-     *          inverse association mapping.
-     */
-    public function getInverseAssociationMapping($targetClassName, $mappedByFieldName)
-    {
-        return isset($this->inverseMappings[$targetClassName][$mappedByFieldName]) ?
-                $this->inverseMappings[$targetClassName][$mappedByFieldName] : null;
-    }
-    
-    /**
-     * Checks whether the class has an inverse association mapping that points to the
-     * specified class and ha the specified mappedBy field.
-     *
-     * @param string $targetClassName The name of the target class.
-     * @param string $mappedByFieldName The name of the mappedBy field that points to the field on
-     *          the target class that owns the association.
-     * @return boolean
-     */
-    public function hasInverseAssociationMapping($targetClassName, $mappedByFieldName)
-    {
-        return isset($this->inverseMappings[$targetClassName][$mappedByFieldName]);
-    }
-    
+
     /**
      * Gets all association mappings of the class.
      *
      * @return array
      */
     public function getAssociationMappings()
-    {
-        return $this->associationMappings;
-    }
-    
-    /**
-     * Gets all association mappings of the class.
-     * 
-     * Alias for getAssociationMappings().
-     *
-     * @return array
-     */
-    public function getAssociations()
     {
         return $this->associationMappings;
     }
@@ -658,7 +529,7 @@ class ClassMetadataInfo
         return isset($this->fieldNames[$columnName]) ?
                 $this->fieldNames[$columnName] : $columnName;
     }
-    
+
     /**
      * Validates & completes the given field mapping.
      *
@@ -672,7 +543,8 @@ class ClassMetadataInfo
             throw MappingException::missingFieldName($this->name, $mapping);
         }
         if ( ! isset($mapping['type'])) {
-            throw MappingException::missingType($this->name, $mapping);
+            // Default to string
+            $mapping['type'] = 'string';
         }
 
         // Complete fieldName and columnName mapping
@@ -686,8 +558,12 @@ class ClassMetadataInfo
         }
 
         $this->columnNames[$mapping['fieldName']] = $mapping['columnName'];
+        if (isset($this->fieldNames[$mapping['columnName']]) || ($this->discriminatorColumn != null && $this->discriminatorColumn['name'] == $mapping['columnName'])) {
+            throw MappingException::duplicateColumnName($this->name, $mapping['columnName']);
+        }
+
         $this->fieldNames[$mapping['columnName']] = $mapping['fieldName'];
-        
+
         // Complete id mapping
         if (isset($mapping['id']) && $mapping['id'] === true) {
             if ( ! in_array($mapping['fieldName'], $this->identifier)) {
@@ -699,27 +575,6 @@ class ClassMetadataInfo
             }
         }
     }
-    
-    /**
-     * Maps an embedded value object.
-     *
-     * @todo Implementation.
-     */
-    /*public function mapEmbeddedValue()
-    {
-        //...
-    }*/
-
-    /**
-     * Gets the identifier (primary key) field names of the class.
-     *
-     * @return mixed
-     * @deprecated Use getIdentifierFieldNames()
-     */
-    public function getIdentifier()
-    {
-        return $this->identifier;
-    }
 
     /**
      * Gets the identifier (primary key) field names of the class.
@@ -730,17 +585,18 @@ class ClassMetadataInfo
     {
         return $this->identifier;
     }
-    
+
     /**
      * Gets the name of the single id field. Note that this only works on
      * entity classes that have a single-field pk.
      *
      * @return string
+     * @throws MappingException If the class has a composite primary key.
      */
     public function getSingleIdentifierFieldName()
     {
         if ($this->isIdentifierComposite) {
-            throw DoctrineException::singleIdNotAllowedOnCompositePrimaryKey($this->name);
+            throw MappingException::singleIdNotAllowedOnCompositePrimaryKey($this->name);
         }
         return $this->identifier[0];
     }
@@ -750,6 +606,7 @@ class ClassMetadataInfo
      * entity classes that have a single-field pk.
      *
      * @return string
+     * @throws MappingException If the class has a composite primary key.
      */
     public function getSingleIdentifierColumnName()
     {
@@ -770,32 +627,12 @@ class ClassMetadataInfo
 
     /**
      * Checks whether the class has a (mapped) field with a certain name.
-     * 
+     *
      * @return boolean
      */
     public function hasField($fieldName)
     {
         return isset($this->fieldMappings[$fieldName]);
-    }
-
-    public function hasInheritedMapping($fieldName)
-    {
-        if (isset($this->fieldMappings[$fieldName]) || isset($this->associationMappings[$fieldName]))
-        {
-            
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Gets all field mappings.
-     *
-     * @return array
-     */
-    public function getFieldMappings()
-    {
-        return $this->fieldMappings;
     }
 
     /**
@@ -811,7 +648,7 @@ class ClassMetadataInfo
             $columnNames = array();
             foreach ($fieldNames as $fieldName) {
                 $columnNames[] = $this->getColumnName($fieldName);
-            } 
+            }
             return $columnNames;
         }
     }
@@ -835,37 +672,17 @@ class ClassMetadataInfo
     }
 
     /**
-     * Returns an array containing all the field names.
-     *
-     * @return array
-     */
-    public function getFieldNames()
-    {
-        return array_values($this->fieldNames);
-    }
-    
-    /**
-     * Gets the Id generator type used by the class.
-     *
-     * @return string
-     */
-    public function getIdGeneratorType()
-    {
-        return $this->generatorType;
-    }
-
-    /**
      * Sets the type of Id generator to use for the mapped class.
      */
     public function setIdGeneratorType($generatorType)
     {
         $this->generatorType = $generatorType;
     }
-    
+
     /**
      * Checks whether the mapped class uses an Id generator.
      *
-     * @return boolean  TRUE if the mapped class uses an Id generator, FALSE otherwise.
+     * @return boolean TRUE if the mapped class uses an Id generator, FALSE otherwise.
      */
     public function usesIdGenerator()
     {
@@ -873,14 +690,13 @@ class ClassMetadataInfo
     }
 
     /**
-     *
      * @return boolean
      */
     public function isInheritanceTypeNone()
     {
         return $this->inheritanceType == self::INHERITANCE_TYPE_NONE;
     }
-    
+
     /**
      * Checks whether the mapped class uses the JOINED inheritance mapping strategy.
      *
@@ -891,7 +707,7 @@ class ClassMetadataInfo
     {
         return $this->inheritanceType == self::INHERITANCE_TYPE_JOINED;
     }
-    
+
     /**
      * Checks whether the mapped class uses the SINGLE_TABLE inheritance mapping strategy.
      *
@@ -902,7 +718,7 @@ class ClassMetadataInfo
     {
         return $this->inheritanceType == self::INHERITANCE_TYPE_SINGLE_TABLE;
     }
-    
+
     /**
      * Checks whether the mapped class uses the TABLE_PER_CLASS inheritance mapping strategy.
      *
@@ -913,7 +729,7 @@ class ClassMetadataInfo
     {
         return $this->inheritanceType == self::INHERITANCE_TYPE_TABLE_PER_CLASS;
     }
-    
+
     /**
      * Checks whether the class uses an identity column for the Id generation.
      *
@@ -923,7 +739,7 @@ class ClassMetadataInfo
     {
         return $this->generatorType == self::GENERATOR_TYPE_IDENTITY;
     }
-    
+
     /**
      * Checks whether the class uses a sequence for id generation.
      *
@@ -933,7 +749,7 @@ class ClassMetadataInfo
     {
         return $this->generatorType == self::GENERATOR_TYPE_SEQUENCE;
     }
-    
+
     /**
      * Checks whether the class uses a table for id generation.
      *
@@ -943,7 +759,7 @@ class ClassMetadataInfo
     {
         $this->generatorType == self::GENERATOR_TYPE_TABLE;
     }
-    
+
     /**
      * Checks whether the class has a natural identifier/pk (which means it does
      * not use any Id generator.
@@ -954,7 +770,7 @@ class ClassMetadataInfo
     {
         return $this->generatorType == self::GENERATOR_TYPE_NONE;
     }
-    
+
     /**
      * Gets the type of a field.
      *
@@ -984,33 +800,23 @@ class ClassMetadataInfo
      */
     public function getTableName()
     {
-        return $this->primaryTable['name'];
+        return $this->table['name'];
     }
-    
+
     /**
      * Gets the table name to use for temporary identifier tables of this class.
-     * 
+     *
      * @return string
      */
     public function getTemporaryIdTableName()
     {
-        return $this->primaryTable['name'] . '_id_tmp';
-    }
-
-    /**
-     * Gets the inheritance mapping type used by the mapped class.
-     *
-     * @return string
-     */
-    public function getInheritanceType()
-    {
-        return $this->inheritanceType;
+        return $this->table['name'] . '_id_tmp';
     }
 
     /**
      * Sets the mapped subclasses of this class.
      *
-     * @param array $subclasses  The names of all mapped subclasses.
+     * @param array $subclasses The names of all mapped subclasses.
      */
     public function setSubclasses(array $subclasses)
     {
@@ -1021,36 +827,6 @@ class ClassMetadataInfo
                 $this->subClasses[] = $subclass;
             }
         }
-    }
-
-    /**
-     * Gets the names of all subclasses.
-     *
-     * @return array  The names of all subclasses.
-     */
-    public function getSubclasses()
-    {
-        return $this->subClasses;
-    }
-
-    /**
-     * Checks whether the class has any persistent subclasses.
-     *
-     * @return boolean TRUE if the class has one or more persistent subclasses, FALSE otherwise.
-     */
-    public function hasSubclasses()
-    {
-        return ! $this->subClasses;
-    }
-
-    /**
-     * Gets the names of all parent classes.
-     *
-     * @return array  The names of all parent classes.
-     */
-    public function getParentClasses()
-    {
-        return $this->parentClasses;
     }
 
     /**
@@ -1067,16 +843,6 @@ class ClassMetadataInfo
     }
 
     /**
-     * Checks whether the class has any persistent parent classes.
-     *
-     * @return boolean TRUE if the class has one or more persistent parent classes, FALSE otherwise.
-     */
-    public function hasParentClasses()
-    {
-        return ! $this->parentClasses;
-    }
-
-    /**
      * Sets the inheritance type used by the class and it's subclasses.
      *
      * @param integer $type
@@ -1090,7 +856,7 @@ class ClassMetadataInfo
     }
 
     /**
-     * Checks whether a mapped field is inherited from a superclass.
+     * Checks whether a mapped field is inherited from an entity superclass.
      *
      * @return boolean TRUE if the field is inherited, FALSE otherwise.
      */
@@ -1107,7 +873,7 @@ class ClassMetadataInfo
      */
     public function isInheritedAssociation($fieldName)
     {
-        return isset($this->inheritedAssociationFields[$fieldName]);
+        return isset($this->associationMappings[$fieldName]->inherited);
     }
 
     /**
@@ -1118,7 +884,7 @@ class ClassMetadataInfo
      */
     public function setTableName($tableName)
     {
-        $this->primaryTable['name'] = $tableName;
+        $this->table['name'] = $tableName;
     }
 
     /**
@@ -1133,20 +899,9 @@ class ClassMetadataInfo
      */
     public function setPrimaryTable(array $primaryTableDefinition)
     {
-        $this->primaryTable = $primaryTableDefinition;
+        $this->table = $primaryTableDefinition;
     }
 
-    /**
-     * Gets the primary table definition.
-     *
-     * @see setPrimaryTable()
-     * @return array
-     */
-    public function getPrimaryTable()
-    {
-        return $this->primaryTable;
-    }
-    
     /**
      * Checks whether the given type identifies an inheritance type.
      *
@@ -1160,22 +915,7 @@ class ClassMetadataInfo
                 $type == self::INHERITANCE_TYPE_JOINED ||
                 $type == self::INHERITANCE_TYPE_TABLE_PER_CLASS;
     }
-    
-    /**
-     * Checks whether the given type identifies an id generator type.
-     *
-     * @param string $type
-     * @return boolean
-     */
-    private function _isIdGeneratorType($type)
-    {
-        return $type == self::GENERATOR_TYPE_AUTO ||
-                $type == self::GENERATOR_TYPE_IDENTITY ||
-                $type == self::GENERATOR_TYPE_SEQUENCE ||
-                $type == self::GENERATOR_TYPE_TABLE ||
-                $type == self::GENERATOR_TYPE_NONE;
-    }
-    
+
     /**
      * Makes some automatic additions to the association mapping to make the life
      * easier for the user, and store join columns in the metadata.
@@ -1193,14 +933,14 @@ class ClassMetadataInfo
     }
 
     /**
-     * Adds a field mapping.
+     * Adds a mapped field to the class.
      *
      * @param array $mapping The field mapping.
      */
     public function mapField(array $mapping)
     {
         $this->_validateAndCompleteFieldMapping($mapping);
-        if (isset($this->fieldMappings[$mapping['fieldName']])) {
+        if (isset($this->fieldMappings[$mapping['fieldName']]) || isset($this->associationMappings[$mapping['fieldName']])) {
             throw MappingException::duplicateFieldMapping($this->name, $mapping['fieldName']);
         }
         $this->fieldMappings[$mapping['fieldName']] = $mapping;
@@ -1213,19 +953,13 @@ class ClassMetadataInfo
      *
      * @param AssociationMapping $mapping
      * @param string $owningClassName The name of the class that defined this mapping.
-     * @todo Rename: addInheritedAssociationMapping
      */
-    public function addAssociationMapping(AssociationMapping $mapping, $owningClassName = null)
+    public function addInheritedAssociationMapping(AssociationMapping $mapping/*, $owningClassName = null*/)
     {
-        $sourceFieldName = $mapping->sourceFieldName;
-        if (isset($this->associationMappings[$sourceFieldName])) {
-            throw MappingException::duplicateAssociationMapping($this->name, $sourceFieldName);
+        if (isset($this->associationMappings[$mapping->sourceFieldName])) {
+            throw MappingException::duplicateAssociationMapping($this->name, $mapping->sourceFieldName);
         }
-        $this->associationMappings[$sourceFieldName] = $mapping;
-        if ($owningClassName !== null) {
-            $this->inheritedAssociationFields[$sourceFieldName] = $owningClassName;
-        }
-        $this->_registerMappingIfInverse($mapping);
+        $this->associationMappings[$mapping->sourceFieldName] = $mapping;
     }
 
     /**
@@ -1236,7 +970,7 @@ class ClassMetadataInfo
      * @param array $mapping
      * @todo Rename: addInheritedFieldMapping
      */
-    public function addFieldMapping(array $fieldMapping)
+    public function addInheritedFieldMapping(array $fieldMapping)
     {
         $this->fieldMappings[$fieldMapping['fieldName']] = $fieldMapping;
         $this->columnNames[$fieldMapping['fieldName']] = $fieldMapping['columnName'];
@@ -1245,7 +979,7 @@ class ClassMetadataInfo
 
     /**
      * Adds a one-to-one mapping.
-     * 
+     *
      * @param array $mapping The mapping.
      */
     public function mapOneToOne(array $mapping)
@@ -1256,22 +990,8 @@ class ClassMetadataInfo
     }
 
     /**
-     * Registers the mapping as an inverse mapping, if it is a mapping on the
-     * inverse side of an association mapping.
-     *
-     * @param AssociationMapping The mapping to register as inverse if it is a mapping
-     *      for the inverse side of an association.
-     */
-    private function _registerMappingIfInverse(AssociationMapping $assoc)
-    {
-        if ($assoc->isInverseSide()) {
-            $this->inverseMappings[$assoc->targetEntityName][$assoc->mappedByFieldName] = $assoc;
-        }
-    }
-
-    /**
      * Adds a one-to-many mapping.
-     * 
+     *
      * @param array $mapping The mapping.
      */
     public function mapOneToMany(array $mapping)
@@ -1283,7 +1003,7 @@ class ClassMetadataInfo
 
     /**
      * Adds a many-to-one mapping.
-     * 
+     *
      * @param array $mapping The mapping.
      */
     public function mapManyToOne(array $mapping)
@@ -1294,7 +1014,7 @@ class ClassMetadataInfo
 
     /**
      * Adds a many-to-many mapping.
-     * 
+     *
      * @param array $mapping The mapping.
      */
     public function mapManyToMany(array $mapping)
@@ -1303,7 +1023,7 @@ class ClassMetadataInfo
         $manyToManyMapping = new ManyToManyMapping($mapping);
         $this->_storeAssociationMapping($manyToManyMapping);
     }
-    
+
     /**
      * Stores the association mapping.
      *
@@ -1312,13 +1032,12 @@ class ClassMetadataInfo
     protected function _storeAssociationMapping(AssociationMapping $assocMapping)
     {
         $sourceFieldName = $assocMapping->sourceFieldName;
-        if (isset($this->associationMappings[$sourceFieldName])) {
+        if (isset($this->fieldMappings[$sourceFieldName]) || isset($this->associationMappings[$sourceFieldName])) {
             throw MappingException::duplicateFieldMapping($this->name, $sourceFieldName);
         }
         $this->associationMappings[$sourceFieldName] = $assocMapping;
-        $this->_registerMappingIfInverse($assocMapping);
     }
-    
+
     /**
      * Registers a custom repository class for the entity class.
      *
@@ -1328,51 +1047,13 @@ class ClassMetadataInfo
     {
         $this->customRepositoryClassName = $repositoryClassName;
     }
-    
-    /**
-     * Gets the name of the custom repository class used for the entity class.
-     *
-     * @return string|null  The name of the custom repository class or NULL if the entity
-     *                      class does not have a custom repository class.
-     */
-    public function getCustomRepositoryClass()
-    {
-         return $this->customRepositoryClassName;
-    }
 
-    /**
-     * Sets whether sub classes should be automatically OUTER JOINed when a base
-     * class is queried in a class hierarchy that uses the JOINED inheritance mapping
-     * strategy.
-     *
-     * <b>This options does only apply to the JOINED inheritance mapping strategy.</b>
-     *
-     * @param boolean $bool
-     * @see getJoinSubClasses()
-     */
-    /*public function setJoinSubClasses($bool)
-    {
-        $this->joinSubclasses = (bool)$bool;
-    }*/
-
-    /**
-     * Gets whether the class mapped by this instance should OUTER JOIN sub classes
-     * when a base class is queried.
-     *
-     * @return <type>
-     * @see setJoinSubClasses()
-     */
-    /*public function getJoinSubClasses()
-    {
-        return $this->joinSubclasses;
-    }*/
-    
     /**
      * Dispatches the lifecycle event of the given entity to the registered
      * lifecycle callbacks and lifecycle listeners.
      *
-     * @param string $event  The lifecycle event.
-     * @param Entity $entity  The Entity on which the event occured.
+     * @param string $event The lifecycle event.
+     * @param Entity $entity The Entity on which the event occured.
      */
     public function invokeLifecycleCallbacks($lifecycleEvent, $entity)
     {
@@ -1380,10 +1061,10 @@ class ClassMetadataInfo
             $entity->$callback();
         }
     }
-    
+
     /**
      * Whether the class has any attached lifecycle listeners or callbacks for a lifecycle event.
-     * 
+     *
      * @param string $lifecycleEvent
      * @return boolean
      */
@@ -1391,7 +1072,7 @@ class ClassMetadataInfo
     {
         return isset($this->lifecycleCallbacks[$lifecycleEvent]);
     }
-    
+
     /**
      * Gets the registered lifecycle callbacks for an event.
      *
@@ -1402,19 +1083,30 @@ class ClassMetadataInfo
     {
         return isset($this->lifecycleCallbacks[$event]) ? $this->lifecycleCallbacks[$event] : array();
     }
-    
+
     /**
      * Adds a lifecycle callback for entities of this class.
      *
      * Note: If the same callback is registered more than once, the old one
      * will be overridden.
-     * 
+     *
      * @param string $callback
      * @param string $event
      */
     public function addLifecycleCallback($callback, $event)
     {
         $this->lifecycleCallbacks[$event][] = $callback;
+    }
+
+    /**
+     * Sets the lifecycle callbacks for entities of this class.
+     * Any previously registered callbacks are overwritten.
+     *
+     * @param array $callbacks
+     */
+    public function setLifecycleCallbacks(array $callbacks)
+    {
+        $this->lifecycleCallbacks = $callbacks;
     }
 
     /**
@@ -1426,6 +1118,10 @@ class ClassMetadataInfo
     public function setDiscriminatorColumn($columnDef)
     {
         if ($columnDef !== null) {
+            if (isset($this->fieldNames[$columnDef['name']])) {
+                throw MappingException::duplicateColumnName($this->name, $columnDef['name']);
+            }
+
             if ( ! isset($columnDef['name'])) {
                 throw MappingException::nameIsMandatoryForDiscriminatorColumns($this->name, $columnDef);
             }
@@ -1434,24 +1130,6 @@ class ClassMetadataInfo
             }
             $this->discriminatorColumn = $columnDef;
         }
-    }
-
-    /**
-     * Gets the discriminator column definition.
-     *
-     * The discriminator column definition is an array with the following keys:
-     * name: The name of the column
-     * type: The type of the column (only integer and string supported)
-     * length: The length of the column (applies only if type is string)
-     *
-     * A discriminator column is used for JOINED and SINGLE_TABLE inheritance mappings.
-     *
-     * @return array
-     * @see setDiscriminatorColumn()
-     */
-    public function getDiscriminatorColumn()
-    {
-        return $this->discriminatorColumn;
     }
 
     /**
@@ -1469,32 +1147,15 @@ class ClassMetadataInfo
             $this->discriminatorMap[$value] = $className;
             if ($this->name == $className) {
                 $this->discriminatorValue = $value;
-            } else if (is_subclass_of($className, $this->name)) {
-                $this->subClasses[] = $className;
+            } else {
+                if ( ! class_exists($className)) {
+                    throw MappingException::invalidClassInDiscriminatorMap($className, $this->name);
+                }
+                if (is_subclass_of($className, $this->name)) {
+                    $this->subClasses[] = $className;
+                }
             }
         }
-    }
-
-    /**
-     * Gets the discriminator value of this class.
-     * Used for JOINED and SINGLE_TABLE inheritance mapping strategies.
-     *
-     * @return array
-     */
-    public function getDiscriminatorValue()
-    {
-        return $this->discriminatorValue;
-    }
-
-    /**
-     * Checks whether the given column name is the discriminator column.
-     *
-     * @param string $columnName
-     * @return boolean
-     */
-    public function isDiscriminatorColumn($columnName)
-    {
-        return $columnName === $this->discriminatorColumn['name'];
     }
 
     /**
@@ -1535,18 +1196,6 @@ class ClassMetadataInfo
     }
 
     /**
-     * Gets the name of the ID generator used for this class.
-     * Only classes that use a SEQUENCE or TABLE ID generation strategy have a generator name.
-     *
-     * @return string|null The name of the ID generator or NULL if this class does not
-     *                     use a named ID generator.
-     */
-    /*public function getIdGeneratorName()
-    {
-        return $this->idGeneratorName;
-    }*/
-
-    /**
      * Sets the ID generator used to generate IDs for instances of this class.
      *
      * @param AbstractIdGenerator $generator
@@ -1554,36 +1203,6 @@ class ClassMetadataInfo
     public function setIdGenerator($generator)
     {
         $this->idGenerator = $generator;
-    }
-
-    /**
-     * Gets the ID generator used to generate IDs for instances of this class.
-     *
-     * @return AbstractIdGenerator
-     */
-    public function getIdGenerator()
-    {
-        return $this->idGenerator;
-    }
-
-    /**
-     * Gets the definition of the sequence ID generator for this class.
-     *
-     * The definition has the following structure:
-     * <code>
-     * array(
-     *     'sequenceName' => 'name',
-     *     'allocationSize' => 20,
-     *     'initialValue' => 1
-     * )
-     * </code>
-     * 
-     * @return array|null An array with the generator definition or NULL if this class
-     *                    has no sequence generator definition.
-     */
-    public function getSequenceGeneratorDefinition()
-    {
-        return $this->sequenceGeneratorDefinition;
     }
 
     /**
@@ -1604,13 +1223,12 @@ class ClassMetadataInfo
     {
         $this->sequenceGeneratorDefinition = $definition;
     }
-    
+
     /**
      * Sets the version field mapping used for versioning. Sets the default
-     * value to use depending on the column type
+     * value to use depending on the column type.
      *
      * @param array $mapping   The version field mapping array
-     * @return void
      */
     public function setVersionMapping(array &$mapping)
     {
@@ -1623,46 +1241,25 @@ class ClassMetadataInfo
             } else if ($mapping['type'] == 'datetime') {
                 $mapping['default'] = 'CURRENT_TIMESTAMP';
             } else {
-                throw DoctrineException::unsupportedOptimisticLockingType($this->name, $mapping['fieldName'], $mapping['type']);
+                throw MappingException::unsupportedOptimisticLockingType($this->name, $mapping['fieldName'], $mapping['type']);
             }
         }
     }
-    
-    /**
-     * Checks whether this class is versioned for optimistic locking.
-     * 
-     * @return boolean TRUE if this class is versioned for optimistic locking, FALSE otherwise.
-     */
-    public function isVersioned()
-    {
-        return $this->isVersioned;
-    }
-    
+
     /**
      * Sets whether this class is to be versioned for optimistic locking.
-     * 
+     *
      * @param boolean $bool
      */
     public function setVersioned($bool)
     {
         $this->isVersioned = $bool;
     }
-    
-    /**
-     * Gets the name of the field that is used for versioning if this class is versioned
-     * for optimistic locking.
-     * 
-     * @return string
-     */
-    public function getVersionField()
-    {
-        return $this->versionField;
-    }
-    
+
     /**
      * Sets the name of the field that is to be used for versioning if this class is
      * versioned for optimistic locking.
-     * 
+     *
      * @param string $versionField
      */
     public function setVersionField($versionField)

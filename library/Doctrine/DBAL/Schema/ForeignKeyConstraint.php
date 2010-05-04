@@ -1,6 +1,6 @@
 <?php
 /*
- *  $Id: ForeignKeyConstraint.php 6871 2009-12-06 18:36:46Z beberlei $
+ *  $Id$
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -125,5 +125,40 @@ class ForeignKeyConstraint extends AbstractAsset implements Constraint
     public function getOption($name)
     {
         return $this->_options[$name];
+    }
+
+    /**
+     * Foreign Key onUpdate status
+     *
+     * @return string|null
+     */
+    public function onUpdate()
+    {
+        return $this->_onEvent('onUpdate');
+    }
+
+    /**
+     * Foreign Key onDelete status
+     *
+     * @return string|null
+     */
+    public function onDelete()
+    {
+        return $this->_onEvent('onDelete');
+    }
+
+    /**
+     * @param  string $event
+     * @return string|null
+     */
+    private function _onEvent($event)
+    {
+        if (isset($this->_options[$event])) {
+            $onEvent = strtoupper($this->_options[$event]);
+            if (!in_array($onEvent, array('NO ACTION', 'RESTRICT'))) {
+                return $onEvent;
+            }
+        }
+        return false;
     }
 }

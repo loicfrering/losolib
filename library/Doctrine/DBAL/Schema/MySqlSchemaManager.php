@@ -36,10 +36,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
 {
     protected function _getPortableViewDefinition($view)
     {
-        return array(
-            'name' => $view['TABLE_NAME'],
-            'sql' => $view['VIEW_DEFINITION']
-        );
+        return new View($view['TABLE_NAME'], $view['VIEW_DEFINITION']);
     }
 
     protected function _getPortableTableDefinition($table)
@@ -68,18 +65,6 @@ class MySqlSchemaManager extends AbstractSchemaManager
         }
         
         return parent::_getPortableTableIndexesList($tableIndexes, $tableName);
-    }
-
-    protected function _getPortableTableConstraintDefinition($tableConstraint)
-    {
-        $tableConstraint = array_change_key_case($tableConstraint, CASE_LOWER);
-
-        if ( ! $tableConstraint['non_unique']) {
-            $index = $tableConstraint['key_name'];
-            if ( ! empty($index)) {
-                return $index;
-            }
-        }
     }
 
     protected function _getPortableSequenceDefinition($sequence)
@@ -265,13 +250,23 @@ class MySqlSchemaManager extends AbstractSchemaManager
     public function _getPortableTableForeignKeyDefinition($tableForeignKey)
     {
         $tableForeignKey = array_change_key_case($tableForeignKey, CASE_LOWER);
+
+        if (!isset($tableForeignKey['delete_rule']) || $tableForeignKey['delete_rule'] == "RESTRICT") {
+            $tableForeignKey['delete_rule'] = null;
+        }
+        if (!isset($tableForeignKey['update_rule']) || $tableForeignKey['update_rule'] == "RESTRICT") {
+            $tableForeignKey['update_rule'] = null;
+        }
         
         return new ForeignKeyConstraint(
             (array)$tableForeignKey['column_name'],
             $tableForeignKey['referenced_table_name'],
             (array)$tableForeignKey['referenced_column_name'],
             $tableForeignKey['constraint_name'],
-            array()
+            array(
+                'onUpdate' => $tableForeignKey['update_rule'],
+                'onDelete' => $tableForeignKey['delete_rule'],
+            )
         );
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /*
- *  $Id: AbstractAsset.php 6937 2009-12-10 22:39:28Z beberlei $
+ *  $Id$
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -80,6 +80,7 @@ abstract class AbstractAsset
             return substr($columnName, -floor(($maxSize-$postfixLen)/$columnCount - 1));
         }, $columnNames);
         $parts[] = $postfix;
+
         return trim(implode("_", $parts), '_');
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /*
- *  $Id: Visitor.php 6852 2009-12-03 22:10:13Z beberlei $
+ *  $Id$
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -54,7 +54,7 @@ interface Visitor
     /**
      * @param Column $column
      */
-    public function acceptColunn(Table $table, Column $column);
+    public function acceptColumn(Table $table, Column $column);
 
     /**
      * @param Table $localTable

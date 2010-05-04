@@ -22,7 +22,6 @@
 namespace Doctrine\ORM;
 
 use Doctrine\Common\EventManager,
-    Doctrine\Common\DoctrineException,
     Doctrine\DBAL\Connection,
     Doctrine\ORM\Mapping\ClassMetadata,
     Doctrine\ORM\Mapping\ClassMetadataFactory,
@@ -32,83 +31,51 @@ use Doctrine\Common\EventManager,
  * The EntityManager is the central access point to ORM functionality.
  *
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
- * @link www.doctrine-project.org
- * @since 2.0
+ * @link    www.doctrine-project.org
+ * @since   2.0
  * @version $Revision$
- * @author Roman Borschel <roman@code-factory.org>
- * @todo Remove flush modes. They dont seem to be of much use. Manual flushing should
- *       be enough.
+ * @author  Benjamin Eberlei <kontakt@beberlei.de>
+ * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
+ * @author  Jonathan Wage <jonwage@gmail.com>
+ * @author  Roman Borschel <roman@code-factory.org>
  */
 class EntityManager
 {
-    /**
-     * IMMEDIATE: Flush occurs automatically after each operation that issues database
-     * queries. No operations are queued.
-     * @deprecated
-     */ 
-    const FLUSHMODE_IMMEDIATE = 1;
-    /**
-     * AUTO: Flush occurs automatically in the following situations:
-     * - Before any query executions (to prevent getting stale data)
-     * - On EntityManager#commit()
-     * @deprecated
-     */
-    const FLUSHMODE_AUTO = 2;
-    /**
-     * COMMIT: Flush occurs automatically only on EntityManager#commit().
-     * @deprecated
-     */
-    const FLUSHMODE_COMMIT = 3;
-    /**
-     * MANUAL: Flush occurs never automatically. The only way to flush is
-     * through EntityManager#flush().
-     * @deprecated
-     */
-    const FLUSHMODE_MANUAL = 4;
-    
     /**
      * The used Configuration.
      *
      * @var Doctrine\ORM\Configuration
      */
     private $_config;
-    
+
     /**
      * The database connection used by the EntityManager.
      *
      * @var Doctrine\DBAL\Connection
      */
     private $_conn;
-    
+
     /**
      * The metadata factory, used to retrieve the ORM metadata of entity classes.
      *
      * @var Doctrine\ORM\Mapping\ClassMetadataFactory
      */
     private $_metadataFactory;
-    
+
     /**
      * The EntityRepository instances.
      *
      * @var array
      */
     private $_repositories = array();
-    
-    /**
-     * The currently used flush mode. Defaults to 'commit'.
-     *
-     * @var string
-     * @deprecated
-     */
-    private $_flushMode = self::FLUSHMODE_COMMIT;
-    
+
     /**
      * The UnitOfWork used to coordinate object-level transactions.
      *
      * @var Doctrine\ORM\UnitOfWork
      */
     private $_unitOfWork;
-    
+
     /**
      * The event manager that is the central point of the event system.
      *
@@ -124,17 +91,22 @@ class EntityManager
     private $_hydrators = array();
 
     /**
-     * The proxy factory which creates association or reference proxies.
+     * The proxy factory used to create dynamic proxies.
      *
-     * @var ProxyFactory
+     * @var Doctrine\ORM\Proxy\ProxyFactory
      */
     private $_proxyFactory;
+
+    /**
+     * @var ExpressionBuilder The expression builder instance used to generate query expressions.
+     */
+    private $_expressionBuilder;
 
     /**
      * Whether the EntityManager is closed or not.
      */
     private $_closed = false;
-    
+
     /**
      * Creates a new EntityManager that operates on the given database connection
      * and uses the given Configuration and EventManager implementations.
@@ -156,7 +128,7 @@ class EntityManager
                 $config->getProxyNamespace(),
                 $config->getAutoGenerateProxyClasses());
     }
-    
+
     /**
      * Gets the database connection object used by the EntityManager.
      *
@@ -176,7 +148,28 @@ class EntityManager
     {
         return $this->_metadataFactory;
     }
-    
+
+    /**
+     * Gets an ExpressionBuilder used for object-oriented construction of query expressions.
+     *
+     * Example:
+     *
+     *     [php]
+     *     $qb = $em->createQueryBuilder();
+     *     $expr = $em->getExpressionBuilder();
+     *     $qb->select('u')->from('User', 'u')
+     *         ->where($expr->orX($expr->eq('u.id', 1), $expr->eq('u.id', 2)));
+     *
+     * @return ExpressionBuilder
+     */
+    public function getExpressionBuilder()
+    {
+        if ($this->_expressionBuilder === null) {
+            $this->_expressionBuilder = new Query\Expr;
+        }
+        return $this->_expressionBuilder;
+    }
+
     /**
      * Starts a transaction on the underlying database connection.
      */
@@ -184,21 +177,15 @@ class EntityManager
     {
         $this->_conn->beginTransaction();
     }
-    
+
     /**
      * Commits a transaction on the underlying database connection.
-     * 
-     * This causes a flush() of the EntityManager if the flush mode is set to
-     * AUTO or COMMIT.
      */
     public function commit()
     {
-        if ($this->_flushMode == self::FLUSHMODE_AUTO || $this->_flushMode == self::FLUSHMODE_COMMIT) {
-            $this->flush();
-        }
         $this->_conn->commit();
     }
-    
+
     /**
      * Performs a rollback on the underlying database connection and closes the
      * EntityManager as it may now be in a corrupted state.
@@ -219,10 +206,10 @@ class EntityManager
     {
         return $this->_metadataFactory->getMetadataFor($className);
     }
-    
+
     /**
      * Creates a new Query object.
-     * 
+     *
      * @param string  The DQL string.
      * @return Doctrine\ORM\Query
      */
@@ -245,7 +232,7 @@ class EntityManager
     {
         return $this->createQuery($this->_config->getNamedQuery($name));
     }
-    
+
     /**
      * Creates a native SQL query.
      *
@@ -260,10 +247,10 @@ class EntityManager
         $query->setResultSetMapping($rsm);
         return $query;
     }
-    
+
     /**
      * Creates a NativeQuery from a named native query.
-     * 
+     *
      * @param string $name
      * @return Doctrine\ORM\NativeQuery
      */
@@ -272,7 +259,7 @@ class EntityManager
         list($sql, $rsm) = $this->_config->getNamedNativeQuery($name);
         return $this->createNativeQuery($sql, $rsm);
     }
-    
+
     /**
      * Create a QueryBuilder instance
      *
@@ -282,7 +269,7 @@ class EntityManager
     {
         return new QueryBuilder($this);
     }
-    
+
     /**
      * Flushes all changes to objects that have been queued up to now to the database.
      * This effectively synchronizes the in-memory state of managed objects with the
@@ -293,7 +280,7 @@ class EntityManager
         $this->_errorIfClosed();
         $this->_unitOfWork->commit();
     }
-    
+
     /**
      * Finds an Entity by its identifier.
      *
@@ -311,7 +298,7 @@ class EntityManager
     /**
      * Gets a reference to the entity identified by the given type and identifier
      * without actually loading it.
-     * 
+     *
      * If partial objects are allowed, this method will return a partial object that only
      * has its identifier populated. Otherwise a proxy is returned that automatically
      * loads itself on first access.
@@ -321,7 +308,7 @@ class EntityManager
     public function getReference($entityName, $identifier)
     {
         $class = $this->_metadataFactory->getMetadataFor($entityName);
-        
+
         // Check identity map first, if its already in there just return it.
         if ($entity = $this->_unitOfWork->tryGetById($identifier, $class->rootEntityName)) {
             return $entity;
@@ -329,37 +316,12 @@ class EntityManager
         if ( ! is_array($identifier)) {
             $identifier = array($class->identifier[0] => $identifier);
         }
-        $entity = $this->_proxyFactory->getProxy($entityName, $identifier);
+        $entity = $this->_proxyFactory->getProxy($class->name, $identifier);
         $this->_unitOfWork->registerManaged($entity, $identifier, array());
 
         return $entity;
     }
-    
-    /**
-     * Sets the flush mode to use.
-     *
-     * @param string $flushMode
-     * @deprecated
-     */
-    public function setFlushMode($flushMode)
-    {
-        if ( ! ($flushMode >= 1 && $flushMode <= 4)) {
-            throw ORMException::invalidFlushMode($flushMode);
-        }
-        $this->_flushMode = $flushMode;
-    }
-    
-    /**
-     * Gets the currently used flush mode.
-     *
-     * @return string
-     * @deprecated
-     */
-    public function getFlushMode()
-    {
-        return $this->_flushMode;
-    }
-    
+
     /**
      * Clears the EntityManager. All entities that are currently managed
      * by this EntityManager become detached.
@@ -375,7 +337,7 @@ class EntityManager
             throw new ORMException("EntityManager#clear(\$entityName) not yet implemented.");
         }
     }
-    
+
     /**
      * Closes the EntityManager. All entities that are currently managed
      * by this EntityManager become detached. The EntityManager may no longer
@@ -386,41 +348,44 @@ class EntityManager
         $this->clear();
         $this->_closed = true;
     }
-    
+
     /**
      * Tells the EntityManager to make an instance managed and persistent.
-     * 
+     *
      * The entity will be entered into the database at or before transaction
      * commit or as a result of the flush operation.
      * 
+     * NOTE: The persist operation always considers entities that are not yet known to
+     * this EntityManager as NEW. Do not pass detached entities to the persist operation.
+     *
      * @param object $object The instance to make managed and persistent.
      */
-    public function persist($object)
+    public function persist($entity)
     {
-        $this->_errorIfClosed();
-        $this->_unitOfWork->persist($object);
-        if ($this->_flushMode == self::FLUSHMODE_IMMEDIATE) {
-            $this->flush();
+        if ( ! is_object($entity)) {
+            throw new \InvalidArgumentException(gettype($entity));
         }
+        $this->_errorIfClosed();
+        $this->_unitOfWork->persist($entity);
     }
-    
+
     /**
      * Removes an entity instance.
-     * 
+     *
      * A removed entity will be removed from the database at or before transaction commit
-     * or as a result of the flush operation. 
-     * 
+     * or as a result of the flush operation.
+     *
      * @param object $entity The entity instance to remove.
      */
     public function remove($entity)
     {
+        if ( ! is_object($entity)) {
+            throw new \InvalidArgumentException(gettype($entity));
+        }
         $this->_errorIfClosed();
         $this->_unitOfWork->remove($entity);
-        if ($this->_flushMode == self::FLUSHMODE_IMMEDIATE) {
-            $this->flush();
-        }
     }
-    
+
     /**
      * Refreshes the persistent state of an entity from the database,
      * overriding any local changes that have not yet been persisted.
@@ -429,6 +394,9 @@ class EntityManager
      */
     public function refresh($entity)
     {
+        if ( ! is_object($entity)) {
+            throw new \InvalidArgumentException(gettype($entity));
+        }
         $this->_errorIfClosed();
         $this->_unitOfWork->refresh($entity);
     }
@@ -437,13 +405,16 @@ class EntityManager
      * Detaches an entity from the EntityManager, causing a managed entity to
      * become detached.  Unflushed changes made to the entity if any
      * (including removal of the entity), will not be synchronized to the database.
-     * Entities which previously referenced the detached entity will continue to 
+     * Entities which previously referenced the detached entity will continue to
      * reference it.
      *
      * @param object $entity The entity to detach.
      */
     public function detach($entity)
     {
+        if ( ! is_object($entity)) {
+            throw new \InvalidArgumentException(gettype($entity));
+        }
         $this->_unitOfWork->detach($entity);
     }
 
@@ -457,21 +428,24 @@ class EntityManager
      */
     public function merge($entity)
     {
+        if ( ! is_object($entity)) {
+            throw new \InvalidArgumentException(gettype($entity));
+        }
         $this->_errorIfClosed();
         return $this->_unitOfWork->merge($entity);
     }
-    
+
     /**
      * Creates a copy of the given entity. Can create a shallow or a deep copy.
      *
      * @param object $entity  The entity to copy.
      * @return object  The new entity.
-     * @todo Implementation or remove.
+     * @todo Implementation need. This is necessary since $e2 = clone $e1; throws an E_FATAL when access anything on $e:
+     * Fatal error: Maximum function nesting level of '100' reached, aborting!
      */
     public function copy($entity, $deep = false)
     {
-        $this->_errorIfClosed();
-        throw DoctrineException::notImplemented(__FUNCTION__, __CLASS__);
+        throw new \BadMethodCallException("Not implemented.");
     }
 
     /**
@@ -487,30 +461,32 @@ class EntityManager
         }
 
         $metadata = $this->getClassMetadata($entityName);
-        $customRepositoryClassName = $metadata->getCustomRepositoryClass();
+        $customRepositoryClassName = $metadata->customRepositoryClassName;
+
         if ($customRepositoryClassName !== null) {
             $repository = new $customRepositoryClassName($this, $metadata);
         } else {
             $repository = new EntityRepository($this, $metadata);
         }
+
         $this->_repositories[$entityName] = $repository;
 
         return $repository;
     }
-    
+
     /**
      * Determines whether an entity instance is managed in this EntityManager.
-     * 
+     *
      * @param object $entity
      * @return boolean TRUE if this EntityManager currently manages the given entity, FALSE otherwise.
      */
     public function contains($entity)
     {
         return $this->_unitOfWork->isScheduledForInsert($entity) ||
-                $this->_unitOfWork->isInIdentityMap($entity) &&
-                ! $this->_unitOfWork->isScheduledForDelete($entity);
+               $this->_unitOfWork->isInIdentityMap($entity) &&
+               ! $this->_unitOfWork->isScheduledForDelete($entity);
     }
-    
+
     /**
      * Gets the EventManager used by the EntityManager.
      *
@@ -520,7 +496,7 @@ class EntityManager
     {
         return $this->_eventManager;
     }
-    
+
     /**
      * Gets the Configuration used by the EntityManager.
      *
@@ -530,7 +506,7 @@ class EntityManager
     {
         return $this->_config;
     }
-    
+
     /**
      * Throws an exception if the EntityManager is closed or currently not active.
      *
@@ -542,7 +518,7 @@ class EntityManager
             throw ORMException::entityManagerClosed();
         }
     }
-    
+
     /**
      * Gets the UnitOfWork used by the EntityManager to coordinate operations.
      *
@@ -552,45 +528,63 @@ class EntityManager
     {
         return $this->_unitOfWork;
     }
-    
+
     /**
      * Gets a hydrator for the given hydration mode.
      *
-     * @param  $hydrationMode
+     * This method caches the hydrator instances which is used for all queries that don't
+     * selectively iterate over the result.
+     *
+     * @param int $hydrationMode
+     * @return Doctrine\ORM\Internal\Hydration\AbstractHydrator
      */
     public function getHydrator($hydrationMode)
     {
         if ( ! isset($this->_hydrators[$hydrationMode])) {
-            switch ($hydrationMode) {
-                case Query::HYDRATE_OBJECT:
-                    $this->_hydrators[$hydrationMode] = new Internal\Hydration\ObjectHydrator($this);
-                    break;
-                case Query::HYDRATE_ARRAY:
-                    $this->_hydrators[$hydrationMode] = new Internal\Hydration\ArrayHydrator($this);
-                    break;
-                case Query::HYDRATE_SCALAR:
-                    $this->_hydrators[$hydrationMode] = new Internal\Hydration\ScalarHydrator($this);
-                    break;
-                case Query::HYDRATE_SINGLE_SCALAR:
-                    $this->_hydrators[$hydrationMode] = new Internal\Hydration\SingleScalarHydrator($this);
-                    break;
-                default:
-                    throw DoctrineException::invalidHydrationMode($hydrationMode);
-            }
+            $this->_hydrators[$hydrationMode] = $this->newHydrator($hydrationMode);
         }
+
         return $this->_hydrators[$hydrationMode];
     }
 
     /**
+     * Create a new instance for the given hydration mode.
+     *
+     * @param  int $hydrationMode
+     * @return Doctrine\ORM\Internal\Hydration\AbstractHydrator
+     */
+    public function newHydrator($hydrationMode)
+    {
+        switch ($hydrationMode) {
+            case Query::HYDRATE_OBJECT:
+                $hydrator = new Internal\Hydration\ObjectHydrator($this);
+                break;
+            case Query::HYDRATE_ARRAY:
+                $hydrator = new Internal\Hydration\ArrayHydrator($this);
+                break;
+            case Query::HYDRATE_SCALAR:
+                $hydrator = new Internal\Hydration\ScalarHydrator($this);
+                break;
+            case Query::HYDRATE_SINGLE_SCALAR:
+                $hydrator = new Internal\Hydration\SingleScalarHydrator($this);
+                break;
+            default:
+                throw ORMException::invalidHydrationMode($hydrationMode);
+        }
+
+        return $hydrator;
+    }
+
+    /**
      * Gets the proxy factory used by the EntityManager to create entity proxies.
-     * 
+     *
      * @return ProxyFactory
      */
     public function getProxyFactory()
     {
         return $this->_proxyFactory;
     }
-    
+
     /**
      * Factory method to create EntityManager instances.
      *
@@ -600,18 +594,20 @@ class EntityManager
      * @param EventManager $eventManager The EventManager instance to use.
      * @return EntityManager The created EntityManager.
      */
-    public static function create($conn, Configuration $config = null, EventManager $eventManager = null)
+    public static function create($conn, Configuration $config, EventManager $eventManager = null)
     {
-        $config = $config ?: new Configuration();
+        if (!$config->getMetadataDriverImpl()) {
+            throw ORMException::missingMappingDriverImpl();
+        }
 
         if (is_array($conn)) {
             $conn = \Doctrine\DBAL\DriverManager::getConnection($conn, $config, ($eventManager ?: new EventManager()));
         } else if ($conn instanceof Connection) {
             if ($eventManager !== null && $conn->getEventManager() !== $eventManager) {
-                 throw DoctrineException::invalidEventManager('Cannot use different EventManagers for EntityManager and Connection.');
+                 throw ORMException::mismatchedEventManager();
             }
         } else {
-            throw DoctrineException::invalidParameter($conn);
+            throw new \InvalidArgumentException("Invalid argument: " . $conn);
         }
 
         return new EntityManager($conn, $config, $conn->getEventManager());

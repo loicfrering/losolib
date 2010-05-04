@@ -80,8 +80,8 @@ class SqliteSchemaManager extends AbstractSchemaManager
         $indexBuffer = array();
 
         // fetch primary
-        $stmt = $this->_conn->execute( "PRAGMA TABLE_INFO ('$tableName')" );
-        $indexArray = $stmt->fetchAll(\Doctrine\DBAL\Connection::FETCH_ASSOC);
+        $stmt = $this->_conn->executeQuery( "PRAGMA TABLE_INFO ('$tableName')" );
+        $indexArray = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         foreach($indexArray AS $indexColumnRow) {
             if($indexColumnRow['pk'] == "1") {
                 $indexBuffer[] = array(
@@ -101,8 +101,8 @@ class SqliteSchemaManager extends AbstractSchemaManager
             $idx['primary'] = false;
             $idx['non_unique'] = $tableIndex['unique']?false:true;
 
-            $stmt = $this->_conn->execute( "PRAGMA INDEX_INFO ( '{$keyName}' )" );
-            $indexArray = $stmt->fetchAll(\Doctrine\DBAL\Connection::FETCH_ASSOC);
+            $stmt = $this->_conn->executeQuery( "PRAGMA INDEX_INFO ( '{$keyName}' )" );
+            $indexArray = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             foreach ( $indexArray as $indexColumnRow ) {
                 $idx['column_name'] = $indexColumnRow['name'];
@@ -256,5 +256,10 @@ class SqliteSchemaManager extends AbstractSchemaManager
         );
 
         return new Column($tableColumn['name'], \Doctrine\DBAL\Types\Type::getType($type), $options);
+    }
+
+    protected function _getPortableViewDefinition($view)
+    {
+        return new View($view['name'], $view['sql']);
     }
 }

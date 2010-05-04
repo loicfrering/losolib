@@ -29,6 +29,15 @@ namespace Doctrine\DBAL\Driver\PDOSqlite;
 class Driver implements \Doctrine\DBAL\Driver
 {
     /**
+     * @var array
+     */
+    protected $_userDefinedFunctions = array(
+        'sqrt' => array('callback' => array('Doctrine\DBAL\Platforms\SqlitePlatform', 'udfSqrt'), 'numArgs' => 1),
+        'mod'  => array('callback' => array('Doctrine\DBAL\Platforms\SqlitePlatform', 'udfMod'), 'numArgs' => 2),
+        'locate'  => array('callback' => array('Doctrine\DBAL\Platforms\SqlitePlatform', 'udfLocate'), 'numArgs' => -1),
+    );
+
+    /**
      * Tries to establish a database connection to SQLite.
      *
      * @param array $params
@@ -39,12 +48,24 @@ class Driver implements \Doctrine\DBAL\Driver
      */
     public function connect(array $params, $username = null, $password = null, array $driverOptions = array())
     {
-        return new \Doctrine\DBAL\Driver\PDOConnection(
+        if (isset($driverOptions['userDefinedFunctions'])) {
+            $this->_userDefinedFunctions = array_merge(
+                $this->_userDefinedFunctions, $driverOptions['userDefinedFunctions']);
+            unset($driverOptions['userDefinedFunctions']);
+        }
+
+        $pdo = new \Doctrine\DBAL\Driver\PDOConnection(
             $this->_constructPdoDsn($params),
             $username,
             $password,
             $driverOptions
         );
+
+        foreach ($this->_userDefinedFunctions AS $fn => $data) {
+            $pdo->sqliteCreateFunction($fn, $data['callback'], $data['numArgs']);
+        }
+
+        return $pdo;
     }
 
     /**

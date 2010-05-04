@@ -21,29 +21,31 @@
 
 namespace Doctrine\ORM\Mapping\Driver;
 
-use Doctrine\ORM\Mapping\ClassMetadataInfo,
+use SimpleXMLElement,
+    Doctrine\ORM\Mapping\ClassMetadataInfo,
     Doctrine\ORM\Mapping\MappingException;
 
 /**
  * XmlDriver is a metadata driver that enables mapping through XML files.
  *
- * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
- * @link    www.doctrine-project.org
- * @since   2.0
- * @version $Revision$
- * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
- * @author  Jonathan Wage <jonwage@gmail.com>
- * @author  Roman Borschel <roman@code-factory.org>
+ * @license 	http://www.opensource.org/licenses/lgpl-license.php LGPL
+ * @link    	www.doctrine-project.org
+ * @since   	2.0
+ * @version     $Revision$
+ * @author		Benjamin Eberlei <kontakt@beberlei.de>
+ * @author		Guilherme Blanco <guilhermeblanco@hotmail.com>
+ * @author      Jonathan H. Wage <jonwage@gmail.com>
+ * @author      Roman Borschel <roman@code-factory.org>
  */
 class XmlDriver extends AbstractFileDriver
 {
+    /**
+     * {@inheritdoc}
+     */
     protected $_fileExtension = '.dcm.xml';
 
     /**
-     * Loads the metadata for the specified class into the provided container.
-     * 
-     * @param string $className
-     * @param ClassMetadata $metadata
+     * {@inheritdoc}
      */
     public function loadMetadataForClass($className, ClassMetadataInfo $metadata)
     {
@@ -56,20 +58,21 @@ class XmlDriver extends AbstractFileDriver
         } else if ($xmlRoot->getName() == 'mapped-superclass') {
             $metadata->isMappedSuperclass = true;
         } else {
-            throw DoctrineException::classIsNotAValidEntityOrMapperSuperClass($className);
+            throw MappingException::classIsNotAValidEntityOrMappedSuperClass($className);
         }
 
         // Evaluate <entity...> attributes
         if (isset($xmlRoot['table'])) {
-            $metadata->primaryTable['name'] = (string)$xmlRoot['table'];
+            $metadata->table['name'] = (string)$xmlRoot['table'];
         }
         
         if (isset($xmlRoot['schema'])) {
-            $metadata->primaryTable['schema'] = (string)$xmlRoot['schema'];
+            $metadata->table['schema'] = (string)$xmlRoot['schema'];
         }
         
         if (isset($xmlRoot['inheritance-type'])) {
-            $metadata->setInheritanceType((string)$xmlRoot['inheritance-type']);
+            $inheritanceType = (string)$xmlRoot['inheritance-type'];
+            $metadata->setInheritanceType(constant('Doctrine\ORM\Mapping\ClassMetadata::INHERITANCE_TYPE_' . $inheritanceType));
         }
 
         // Evaluate <discriminator-column...>
@@ -84,7 +87,11 @@ class XmlDriver extends AbstractFileDriver
 
         // Evaluate <discriminator-map...>
         if (isset($xmlRoot->{'discriminator-map'})) {
-            $metadata->setDiscriminatorMap((array)$xmlRoot->{'discriminator-map'});
+            $map = array();
+            foreach ($xmlRoot->{'discriminator-map'}->{'discriminator-mapping'} AS $discrMapElement) {
+                $map[(string)$discrMapElement['value']] = (string)$discrMapElement['class'];
+            }
+            $metadata->setDiscriminatorMap($map);
         }
 
         // Evaluate <change-tracking-policy...>
@@ -102,7 +109,7 @@ class XmlDriver extends AbstractFileDriver
                     $columns = $index['columns'];
                 }
                 
-                $metadata->primaryTable['indexes'][$index['name']] = array(
+                $metadata->table['indexes'][$index['name']] = array(
                     'columns' => $columns
                 );
             }
@@ -117,7 +124,7 @@ class XmlDriver extends AbstractFileDriver
                     $columns = $unique['columns'];
                 }
                 
-                $metadata->primaryTable['uniqueConstraints'][$unique['name']] = array(
+                $metadata->table['uniqueConstraints'][$unique['name']] = array(
                     'columns' => $columns
                 );
             }
@@ -148,19 +155,23 @@ class XmlDriver extends AbstractFileDriver
                 }
                 
                 if (isset($fieldMapping['unique'])) {
-                  $mapping['unique'] = (bool)$fieldMapping['unique'];
+                    $mapping['unique'] = ((string)$fieldMapping['unique'] == "false") ? false : true;
                 }
                 
                 if (isset($fieldMapping['options'])) {
                     $mapping['options'] = (array)$fieldMapping['options'];
+                }
+
+                if (isset($fieldMapping['nullable'])) {
+                    $mapping['nullable'] = ((string)$fieldMapping['nullable'] == "false") ? false : true;
                 }
                 
                 if (isset($fieldMapping['version']) && $fieldMapping['version']) {
                     $metadata->setVersionMapping($mapping);
                 }
                 
-                if (isset($fieldMapping['columnDefinition'])) {
-                    $mapping['columnDefinition'] = (string)$fieldMapping['columnDefinition'];
+                if (isset($fieldMapping['column-definition'])) {
+                    $mapping['columnDefinition'] = (string)$fieldMapping['column-definition'];
                 }
                 
                 $metadata->mapField($mapping);
@@ -182,8 +193,10 @@ class XmlDriver extends AbstractFileDriver
             $metadata->mapField($mapping);
 
             if (isset($idElement->generator)) {
+                $strategy = isset($idElement->generator['strategy']) ?
+                        (string)$idElement->generator['strategy'] : 'AUTO';
                 $metadata->setIdGeneratorType(constant('Doctrine\ORM\Mapping\ClassMetadata::GENERATOR_TYPE_'
-                        . strtoupper((string)$idElement->generator['strategy'])));
+                        . $strategy));
             }
 
             // Check for SequenceGenerator/TableGenerator definition
@@ -195,7 +208,7 @@ class XmlDriver extends AbstractFileDriver
                     'initialValue' => $seqGeneratorAnnot->{'initial-value'}
                 ));
             } else if (isset($idElement->{'table-generator'})) {
-                throw DoctrineException::tableIdGeneratorNotImplemented();
+                throw MappingException::tableIdGeneratorNotImplemented($className);
             }
         }
 
@@ -214,6 +227,9 @@ class XmlDriver extends AbstractFileDriver
                 if (isset($oneToOneElement['mapped-by'])) {
                     $mapping['mappedBy'] = (string)$oneToOneElement['mapped-by'];
                 } else {
+                    if (isset($oneToOneElement['inversed-by'])) {
+                        $mapping['inversedBy'] = (string)$oneToOneElement['inversed-by'];
+                    }
                     $joinColumns = array();
                     
                     if (isset($oneToOneElement->{'join-column'})) {
@@ -222,8 +238,6 @@ class XmlDriver extends AbstractFileDriver
                         foreach ($oneToOneElement->{'join-columns'}->{'join-column'} as $joinColumnElement) {
                             $joinColumns[] = $this->_getJoinColumnMapping($joinColumnElement);
                         }
-                    } else {
-                        throw MappingException::invalidMapping($mapping['fieldName']);
                     }
                     
                     $mapping['joinColumns'] = $joinColumns;
@@ -261,6 +275,14 @@ class XmlDriver extends AbstractFileDriver
                 if (isset($oneToManyElement->{'orphan-removal'})) {
                     $mapping['orphanRemoval'] = (bool)$oneToManyElement->{'orphan-removal'};
                 }
+
+                if (isset($oneToManyElement->{'order-by'})) {
+                    $orderBy = array();
+                    foreach ($oneToManyElement->{'order-by'}->{'order-by-field'} AS $orderByField) {
+                        $orderBy[(string)$orderByField['name']] = (string)$orderByField['direction'];
+                    }
+                    $mapping['orderBy'] = $orderBy;
+                }
                 
                 $metadata->mapOneToMany($mapping);
             }
@@ -277,9 +299,13 @@ class XmlDriver extends AbstractFileDriver
                 if (isset($manyToOneElement['fetch'])) {
                     $mapping['fetch'] = constant('Doctrine\ORM\Mapping\AssociationMapping::FETCH_' . (string)$manyToOneElement['fetch']);
                 }
-                
+
+                if (isset($manyToOneElement['inversed-by'])) {
+                    $mapping['inversedBy'] = (string)$manyToOneElement['inversed-by'];
+                }
+
                 $joinColumns = array();
-                
+
                 if (isset($manyToOneElement->{'join-column'})) {
                     $joinColumns[] = $this->_getJoinColumnMapping($manyToOneElement->{'join-column'});
                 } else if (isset($manyToOneElement->{'join-columns'})) {
@@ -287,15 +313,12 @@ class XmlDriver extends AbstractFileDriver
                         if (!isset($joinColumnElement['name'])) {
                             $joinColumnElement['name'] = $name;
                         }
-                        
                         $joinColumns[] = $this->_getJoinColumnMapping($joinColumnElement);
                     }
-                } else {
-                    throw MappingException::invalidMapping($mapping['fieldName']);
                 }
-                
+
                 $mapping['joinColumns'] = $joinColumns;
-                
+
                 if (isset($manyToOneElement->cascade)) {
                     $mapping['cascade'] = $this->_getCascadeMappings($manyToOneElement->cascade);
                 }
@@ -323,11 +346,15 @@ class XmlDriver extends AbstractFileDriver
                 if (isset($manyToManyElement['mapped-by'])) {
                     $mapping['mappedBy'] = (string)$manyToManyElement['mapped-by'];
                 } else if (isset($manyToManyElement->{'join-table'})) {
+                    if (isset($manyToManyElement['inversed-by'])) {
+                        $mapping['inversedBy'] = (string)$manyToManyElement['inversed-by'];
+                    }
+
                     $joinTableElement = $manyToManyElement->{'join-table'};
                     $joinTable = array(
                         'name' => (string)$joinTableElement['name']
                     );
-                    
+
                     if (isset($joinTableElement['schema'])) {
                         $joinTable['schema'] = (string)$joinTableElement['schema'];
                     }
@@ -341,8 +368,6 @@ class XmlDriver extends AbstractFileDriver
                     }
                     
                     $mapping['joinTable'] = $joinTable;
-                } else {
-                    throw MappingException::invalidMapping($mapping['fieldName']);
                 }
                 
                 if (isset($manyToManyElement->cascade)) {
@@ -352,6 +377,14 @@ class XmlDriver extends AbstractFileDriver
                 if (isset($manyToManyElement->{'orphan-removal'})) {
                     $mapping['orphanRemoval'] = (bool)$manyToManyElement->{'orphan-removal'};
                 }
+
+                if (isset($manyToManyElement->{'order-by'})) {
+                    $orderBy = array();
+                    foreach ($manyToManyElement->{'order-by'}->{'order-by-field'} AS $orderByField) {
+                        $orderBy[(string)$orderByField['name']] = (string)$orderByField['direction'];
+                    }
+                    $mapping['orderBy'] = $orderBy;
+                }
                 
                 $metadata->mapManyToMany($mapping);
             }
@@ -360,36 +393,9 @@ class XmlDriver extends AbstractFileDriver
         // Evaluate <lifecycle-callbacks...>
         if (isset($xmlRoot->{'lifecycle-callbacks'})) {
             foreach ($xmlRoot->{'lifecycle-callbacks'}->{'lifecycle-callback'} as $lifecycleCallback) {
-                $metadata->addLifecycleCallback((string)$lifecycleCallback['method'], constant('\Doctrine\ORM\Events::' . (string)$lifecycleCallback['type']));
+                $metadata->addLifecycleCallback((string)$lifecycleCallback['method'], constant('Doctrine\ORM\Events::' . (string)$lifecycleCallback['type']));
             }
         }
-    }
-    
-    /**
-     * Loads a mapping file with the given name and returns a map
-     * from class/entity names to their corresponding SimpleXMLElement nodes.
-     * 
-     * @param string $file The mapping file to load.
-     * @return array
-     */
-    protected function _loadMappingFile($file)
-    {
-        $result = array();
-        $xmlElement = simplexml_load_file($file);
-
-        if (isset($xmlElement->entity)) {
-            foreach ($xmlElement->entity as $entityElement) {
-                $entityName = (string)$entityElement['name'];
-                $result[$entityName] = $entityElement;
-            }
-        } else if (isset($xmlElement->{'mapped-superclass'})) {
-            foreach ($xmlElement->{'mapped-superclass'} as $mapperSuperClass) {
-                $className = (string)$mappedSuperClass['name'];
-                $result[$className] = $mappedSuperClass;
-            }
-        }
-
-        return $result;
     }
 
     /**
@@ -399,7 +405,7 @@ class XmlDriver extends AbstractFileDriver
      * @param $joinColumnElement The XML element.
      * @return array The mapping array.
      */
-    private function _getJoinColumnMapping(\SimpleXMLElement $joinColumnElement)
+    private function _getJoinColumnMapping(SimpleXMLElement $joinColumnElement)
     {
         $joinColumn = array(
             'name' => (string)$joinColumnElement['name'],
@@ -407,19 +413,23 @@ class XmlDriver extends AbstractFileDriver
         );
         
         if (isset($joinColumnElement['unique'])) {
-            $joinColumn['unique'] = (bool)$joinColumnElement['unique'];
+            $joinColumn['unique'] = ((string)$joinColumnElement['unique'] == "false") ? false : true;
         }
         
         if (isset($joinColumnElement['nullable'])) {
-            $joinColumn['nullable'] = (bool)$joinColumnElement['nullable'];
+            $joinColumn['nullable'] = ((string)$joinColumnElement['nullable'] == "false") ? false : true;
         }
         
-        if (isset($joinColumnElement['onDelete'])) {
+        if (isset($joinColumnElement['on-delete'])) {
             $joinColumn['onDelete'] = (string)$joinColumnElement['on-delete'];
         }
         
-        if (isset($joinColumnElement['onUpdate'])) {
+        if (isset($joinColumnElement['on-update'])) {
             $joinColumn['onUpdate'] = (string)$joinColumnElement['on-update'];
+        }
+
+        if (isset($joinColumnElement['column-definition'])) {
+            $joinColumn['columnDefinition'] = (string)$joinColumnElement['column-definition'];
         }
         
         return $joinColumn;
@@ -443,5 +453,28 @@ class XmlDriver extends AbstractFileDriver
             $cascades[] = str_replace('cascade-', '', $action->getName());
         }
         return $cascades;
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    protected function _loadMappingFile($file)
+    {
+        $result = array();
+        $xmlElement = simplexml_load_file($file);
+
+        if (isset($xmlElement->entity)) {
+            foreach ($xmlElement->entity as $entityElement) {
+                $entityName = (string)$entityElement['name'];
+                $result[$entityName] = $entityElement;
+            }
+        } else if (isset($xmlElement->{'mapped-superclass'})) {
+            foreach ($xmlElement->{'mapped-superclass'} as $mapperSuperClass) {
+                $className = (string)$mappedSuperClass['name'];
+                $result[$className] = $mappedSuperClass;
+            }
+        }
+
+        return $result;
     }
 }

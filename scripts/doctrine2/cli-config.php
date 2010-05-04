@@ -27,5 +27,10 @@ Zend_Loader_Autoloader::getInstance()->pushAutoloader(array('LoSo_Symfony_Compon
 
 $em = $application->getBootstrap()->doctrine2;
 
-$configuration = new \Doctrine\Common\Cli\Configuration();
-$configuration->setAttribute('em', $em);
+/*$configuration = new \Doctrine\Common\Cli\Configuration();
+$configuration->setAttribute('em', $em);*/
+
+$helpers = array(
+    'db' => new \Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper($em->getConnection()),
+    'em' => new \Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper($em)
+);

@@ -1,6 +1,6 @@
 <?php
 /*
- *  $Id: Schema.php 6938 2009-12-10 23:55:47Z beberlei $
+ *  $Id$
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -40,7 +40,7 @@ class Schema extends AbstractAsset
      * @var array
      */
     protected $_tables = array();
-
+    
     /**
      * @var array
      */
@@ -54,6 +54,8 @@ class Schema extends AbstractAsset
     /**
      * @param array $tables
      * @param array $sequences
+     * @param array $views
+     * @param array $triggers
      * @param SchemaConfig $schemaConfig
      */
     public function __construct(array $tables=array(), array $sequences=array(), SchemaConfig $schemaConfig=null)
@@ -305,6 +307,21 @@ class Schema extends AbstractAsset
         }
         foreach ($this->_sequences AS $sequence) {
             $sequence->visit($visitor);
+        }
+    }
+
+    /**
+     * Cloning a Schema triggers a deep clone of all related assets.
+     *
+     * @return void
+     */
+    public function __clone()
+    {
+        foreach ($this->_tables AS $k => $table) {
+            $this->_tables[$k] = clone $table;
+        }
+        foreach ($this->_sequences AS $k => $sequence) {
+            $this->_sequences[$k] = clone $sequence;
         }
     }
 }

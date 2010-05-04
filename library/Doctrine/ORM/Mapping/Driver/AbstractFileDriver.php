@@ -34,7 +34,9 @@ use Doctrine\ORM\Mapping\MappingException;
  * @license     http://www.opensource.org/licenses/lgpl-license.php LGPL
  * @link        www.doctrine-project.com
  * @since       2.0
- * @version     $Revision: 1393 $
+ * @version     $Revision$
+ * @author		Benjamin Eberlei <kontakt@beberlei.de>
+ * @author		Guilherme Blanco <guilhermeblanco@hotmail.com>
  * @author      Jonathan H. Wage <jonwage@gmail.com>
  * @author      Roman Borschel <roman@code-factory.org>
  */
@@ -45,7 +47,7 @@ abstract class AbstractFileDriver implements Driver
      *
      * @var array
      */
-    protected $_paths;
+    protected $_paths = array();
 
     /**
      * The file extension of mapping documents.
@@ -54,15 +56,35 @@ abstract class AbstractFileDriver implements Driver
      */
     protected $_fileExtension;
 
+    /** 
+     * Initializes a new FileDriver that looks in the given path(s) for mapping 
+     * documents and operates in the specified operating mode. 
+     *  
+     * @param string|array $paths One or multiple paths where mapping documents can be found. 
+     */ 
+    public function __construct($paths) 
+    { 
+        $this->addPaths((array) $paths);
+    } 
+
     /**
-     * Initializes a new FileDriver that looks in the given path(s) for mapping
-     * documents and operates in the specified operating mode.
-     * 
-     * @param string|array $paths One or multiple paths where mapping documents can be found.
+     * Append lookup paths to metadata driver.
+     *
+     * @param array $paths
      */
-    public function __construct($paths)
+    public function addPaths(array $paths)
     {
-        $this->_paths = (array) $paths;
+        $this->_paths = array_unique(array_merge($this->_paths, $paths));
+    }
+
+    /**
+     * Retrieve the defined metadata lookup paths.
+     *
+     * @return array
+     */
+    public function getPaths()
+    {
+        return $this->_paths;
     }
 
     /**
@@ -95,6 +117,7 @@ abstract class AbstractFileDriver implements Driver
     public function getElement($className)
     {
         $result = $this->_loadMappingFile($this->_findMappingFile($className));
+        
         return $result[$className];
     }
 
@@ -108,18 +131,18 @@ abstract class AbstractFileDriver implements Driver
      */
     public function isTransient($className)
     {
-        $isTransient = true;
-        // check whether file exists
-        foreach ((array)$this->_paths as $path) {
-            if (file_exists($path . DIRECTORY_SEPARATOR . str_replace('\\', '.', $className) . $this->_fileExtension)) {
-                $isTransient = false;
-                break;
+        $fileName = str_replace('\\', '.', $className) . $this->_fileExtension;
+
+        // Check whether file exists
+        foreach ((array) $this->_paths as $path) {
+            if (file_exists($path . DIRECTORY_SEPARATOR . $fileName)) {
+                return false;
             }
         }
 
-        return $isTransient;
+        return true;
     }
-    
+
     /**
      * Gets the names of all mapped classes known to this driver.
      * 
@@ -127,19 +150,31 @@ abstract class AbstractFileDriver implements Driver
      */
     public function getAllClassNames()
     {
-        $clasNames = array();
-        foreach ((array)$this->_paths as $path) {
-            if (is_dir($path)) {
-                $files = glob($path . '/*');
-                foreach ($files as $file) {
-                    $classNames[] = str_replace(array($this->_fileExtension, '.'), array('', '\\'), basename($file));
+        $classes = array();
+
+        if ($this->_paths) {
+            foreach ((array) $this->_paths as $path) {
+                if ( ! is_dir($path)) {
+                    throw MappingException::fileMappingDriversRequireConfiguredDirectoryPath();
                 }
-            } else if (is_file($path)) {
-                $classNames[] = str_replace(array($this->_fileExtension, '.'), array('', '\\'), basename($file));
+            
+                $iterator = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($path),
+                    \RecursiveIteratorIterator::LEAVES_ONLY
+                );
+        
+                foreach ($iterator as $file) {
+                    if (($fileName = $file->getBasename($this->_fileExtension)) == $file->getBasename()) {
+                        continue;
+                    }
+                    
+                    // NOTE: All files found here means classes are not transient!
+                    $classes[] = str_replace('.', '\\', $fileName);
+                }
             }
         }
-
-        return $classNames;
+        
+        return $classes;
     }
 
     /**
@@ -152,19 +187,16 @@ abstract class AbstractFileDriver implements Driver
      */
     protected function _findMappingFile($className)
     {
-        $fileName = null;
-        foreach ((array)$this->_paths as $path) {
-            $fileName = $path . DIRECTORY_SEPARATOR . str_replace('\\', '.', $className) . $this->_fileExtension;
-            if (file_exists($fileName)) {
-                break;
+        $fileName = str_replace('\\', '.', $className) . $this->_fileExtension;
+        
+        // Check whether file exists
+        foreach ((array) $this->_paths as $path) {
+            if (file_exists($path . DIRECTORY_SEPARATOR . $fileName)) {
+                return $path . DIRECTORY_SEPARATOR . $fileName;
             }
         }
 
-        if ($fileName === null) {
-            throw MappingException::mappingFileNotFound($className);
-        }
-
-        return $fileName;
+        throw MappingException::mappingFileNotFound($className, $fileName);
     }
 
     /**

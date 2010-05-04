@@ -21,9 +21,8 @@
 
 namespace Doctrine\DBAL\Platforms;
 
-use \Doctrine\DBAL\Schema\TableDiff;
-
-use Doctrine\Common\DoctrineException;
+use Doctrine\DBAL\Schema\TableDiff;
+use Doctrine\DBAL\DBALException;
 
 /**
  * The MsSqlPlatform provides the behavior, features and SQL dialect of the
@@ -32,17 +31,11 @@ use Doctrine\Common\DoctrineException;
  * @since 2.0
  * @author Roman Borschel <roman@code-factory.org>
  * @author Jonathan H. Wage <jonwage@gmail.com>
+ * @author Benjamin Eberlei <kontakt@beberlei.de>
+ * @todo Rename: MsSQLPlatform
  */
 class MsSqlPlatform extends AbstractPlatform
-{ 
-    /**
-     * the constructor
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-    
+{
     /**
      * Adds an adapter-specific LIMIT clause to the SELECT statement.
      * [ borrowed from Zend Framework ]
@@ -61,7 +54,7 @@ class MsSqlPlatform extends AbstractPlatform
 
             $offset = intval($offset);
             if ($offset < 0) {
-                throw \Doctrine\Common\DoctrineException::limitOffsetInvalid($offset);
+                throw DBALException::limitOffsetInvalid($offset);
             }
     
             $orderby = stristr($query, 'ORDER BY');
@@ -98,7 +91,7 @@ class MsSqlPlatform extends AbstractPlatform
      * @param TableDiff $diff
      * @return array
      */
-    public function getAlterTableSql(TableDiff $diff)
+    public function getAlterTableSQL(TableDiff $diff)
     {
         $queryParts = array();
         if ($diff->newName !== false) {
@@ -106,7 +99,7 @@ class MsSqlPlatform extends AbstractPlatform
         }
 
         foreach ($diff->addedColumns AS $fieldName => $column) {
-            $queryParts[] = 'ADD ' . $this->getColumnDeclarationSql($column->getName(), $column->toArray());
+            $queryParts[] = 'ADD ' . $this->getColumnDeclarationSQL($column->getName(), $column->toArray());
         }
 
         foreach ($diff->removedColumns AS $column) {
@@ -117,19 +110,19 @@ class MsSqlPlatform extends AbstractPlatform
             /* @var $columnDiff Doctrine\DBAL\Schema\ColumnDiff */
             $column = $columnDiff->column;
             $queryParts[] =  'CHANGE ' . ($columnDiff->oldColumnName) . ' '
-                    . $this->getColumnDeclarationSql($column->getName(), $column->toArray());
+                    . $this->getColumnDeclarationSQL($column->getName(), $column->toArray());
         }
 
         foreach ($diff->renamedColumns AS $oldColumnName => $column) {
             $queryParts[] =  'CHANGE ' . $oldColumnName . ' '
-                    . $this->getColumnDeclarationSql($column->getName(), $column->toArray());
+                    . $this->getColumnDeclarationSQL($column->getName(), $column->toArray());
         }
 
         $sql = array();
         if (count($queryParts) > 0) {
             $sql[] = 'ALTER TABLE ' . $diff->name . ' ' . implode(", ", $queryParts);
         }
-        $sql = array_merge($sql, $this->_getAlterTableIndexForeignKeySql($diff));
+        $sql = array_merge($sql, $this->_getAlterTableIndexForeignKeySQL($diff));
         return $sql;
     }
     
@@ -142,16 +135,6 @@ class MsSqlPlatform extends AbstractPlatform
     public function getRegexpExpression()
     {
         return 'RLIKE';
-    }
-
-    /**
-     * return string to call a function to get random value inside an SQL statement
-     *
-     * @return string to generate float between 0 and 1
-     */
-    public function getRandomExpression()
-    {
-        return 'RAND()';
     }
 
     /**
@@ -251,12 +234,12 @@ class MsSqlPlatform extends AbstractPlatform
         return false;
     }
 
-    public function getShowDatabasesSql()
+    public function getShowDatabasesSQL()
     {
         return 'SHOW DATABASES';
     }
 
-    public function getListTablesSql()
+    public function getListTablesSQL()
     {
         return 'SHOW TABLES';
     }
@@ -268,7 +251,7 @@ class MsSqlPlatform extends AbstractPlatform
      * @return string
      * @override
      */
-    public function getCreateDatabaseSql($name)
+    public function getCreateDatabaseSQL($name)
     {
         return 'CREATE DATABASE ' . $name;
     }
@@ -280,41 +263,41 @@ class MsSqlPlatform extends AbstractPlatform
      * @return string
      * @override
      */
-    public function getDropDatabaseSql($name)
+    public function getDropDatabaseSQL($name)
     {
         return 'DROP DATABASE ' . $name;
     }
 
-    public function getSetTransactionIsolationSql($level)
+    public function getSetTransactionIsolationSQL($level)
     {
-        return 'SET TRANSACTION ISOLATION LEVEL ' . $this->_getTransactionIsolationLevelSql($level);
+        return 'SET TRANSACTION ISOLATION LEVEL ' . $this->_getTransactionIsolationLevelSQL($level);
     }
     
     /** 
      * @override 
      */
-    public function getIntegerTypeDeclarationSql(array $field)
+    public function getIntegerTypeDeclarationSQL(array $field)
     {
-        return 'INT' . $this->_getCommonIntegerTypeDeclarationSql($field);
+        return 'INT' . $this->_getCommonIntegerTypeDeclarationSQL($field);
     }
 
     /**
      * @override 
      */
-    public function getBigIntTypeDeclarationSql(array $field)
+    public function getBigIntTypeDeclarationSQL(array $field)
     {
-        return 'BIGINT' . $this->_getCommonIntegerTypeDeclarationSql($field);
+        return 'BIGINT' . $this->_getCommonIntegerTypeDeclarationSQL($field);
     }
 
     /** 
      * @override 
      */
-    public function getSmallIntTypeDeclarationSql(array $field)
+    public function getSmallIntTypeDeclarationSQL(array $field)
     {
-        return 'SMALLINT' . $this->_getCommonIntegerTypeDeclarationSql($field);
+        return 'SMALLINT' . $this->_getCommonIntegerTypeDeclarationSQL($field);
     }
 
-    public function getVarcharTypeDeclarationSql(array $field)
+    public function getVarcharTypeDeclarationSQL(array $field)
     {
         if ( ! isset($field['length'])) {
             if (array_key_exists('default', $field)) {
@@ -332,7 +315,7 @@ class MsSqlPlatform extends AbstractPlatform
     }
     
     /** @override */
-    public function getClobTypeDeclarationSql(array $field)
+    public function getClobTypeDeclarationSQL(array $field)
     {
         return 'TEXT';
     }
@@ -340,7 +323,7 @@ class MsSqlPlatform extends AbstractPlatform
     /** 
      * @override 
      */
-    protected function _getCommonIntegerTypeDeclarationSql(array $columnDef)
+    protected function _getCommonIntegerTypeDeclarationSQL(array $columnDef)
     {
         $autoinc = '';
         if ( ! empty($columnDef['autoincrement'])) {
@@ -352,22 +335,9 @@ class MsSqlPlatform extends AbstractPlatform
     }
 
     /**
-     * Obtain DBMS specific SQL code portion needed to set the CHARACTER SET
-     * of a field declaration to be used in statements like CREATE TABLE.
-     *
-     * @param string $charset   name of the charset
-     * @return string  DBMS specific SQL code portion needed to set the CHARACTER SET
-     *                 of a field declaration.
-     */
-    public function getCharsetFieldDeclaration($charset)
-    {
-        return 'CHARACTER SET ' . $charset;
-    }
-
-    /**
      * @override
      */
-    public function getDateTimeTypeDeclarationSql(array $fieldDeclaration)
+    public function getDateTimeTypeDeclarationSQL(array $fieldDeclaration)
     {
         return 'CHAR(' . strlen('YYYY-MM-DD HH:MM:SS') . ')';
     }
@@ -375,7 +345,7 @@ class MsSqlPlatform extends AbstractPlatform
     /**
      * @override
      */
-    public function getDateTypeDeclarationSql(array $fieldDeclaration)
+    public function getDateTypeDeclarationSQL(array $fieldDeclaration)
     {
         return 'CHAR(' . strlen('YYYY-MM-DD') . ')';
     }	
@@ -383,7 +353,7 @@ class MsSqlPlatform extends AbstractPlatform
     /**
      * @override
      */
-    public function getTimeTypeDeclarationSql(array $fieldDeclaration) 
+    public function getTimeTypeDeclarationSQL(array $fieldDeclaration) 
     {
         return 'CHAR(' . strlen('HH:MM:SS') . ')';
     }
@@ -391,7 +361,7 @@ class MsSqlPlatform extends AbstractPlatform
     /**
      * @override
      */
-    public function getBooleanTypeDeclarationSql(array $field)
+    public function getBooleanTypeDeclarationSQL(array $field)
     {
         return 'BIT';
     }
@@ -501,8 +471,16 @@ class MsSqlPlatform extends AbstractPlatform
      * @param string $identifierColumnName 
      * @return string $sql
      */
-    public function getEmptyIdentityInsertSql($quotedTableName, $quotedIdentifierColumnName)
+    public function getEmptyIdentityInsertSQL($quotedTableName, $quotedIdentifierColumnName)
     {
         return 'INSERT INTO ' . $quotedTableName . ' DEFAULT VALUES';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getTruncateTableSQL($tableName, $cascade = false)
+    {
+        return 'TRUNCATE TABLE '.$tableName;
     }
 }

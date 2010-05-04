@@ -1,6 +1,6 @@
 <?php
 /*
- *  $Id: DropSchemaSqlCollector.php 6871 2009-12-06 18:36:46Z beberlei $
+ *  $Id$
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -83,13 +83,13 @@ class DropSchemaSqlCollector implements Visitor
      */
     public function acceptTable(Table $table)
     {
-        $this->_tables[] = $this->_platform->getDropTableSql($table->getName());
+        $this->_tables[] = $this->_platform->getDropTableSQL($table->getName());
     }
 
     /**
      * @param Column $column
      */
-    public function acceptColunn(Table $table, Column $column)
+    public function acceptColumn(Table $table, Column $column)
     {
         
     }
@@ -104,7 +104,7 @@ class DropSchemaSqlCollector implements Visitor
             throw SchemaException::namedForeignKeyRequired($localTable, $fkConstraint);
         }
 
-        $this->_constraints[] = $this->_platform->getDropForeignKeySql($fkConstraint->getName(), $localTable->getName());
+        $this->_constraints[] = $this->_platform->getDropForeignKeySQL($fkConstraint->getName(), $localTable->getName());
     }
 
     /**
@@ -121,7 +121,7 @@ class DropSchemaSqlCollector implements Visitor
      */
     public function acceptSequence(Sequence $sequence)
     {
-        $this->_sequences[] = $this->_platform->getDropSequenceSql($sequence->getName());
+        $this->_sequences[] = $this->_platform->getDropSequenceSQL($sequence->getName());
     }
 
     /**

@@ -1,6 +1,6 @@
 <?php
 /*
- *  $Id: Comparator.php 6872 2009-12-06 18:55:08Z beberlei $
+ *  $Id$
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -272,27 +272,19 @@ class Comparator
      */
     public function diffForeignKey(ForeignKeyConstraint $key1, ForeignKeyConstraint $key2)
     {
-        if ($key1->getLocalColumns() != $key2->getLocalColumns()) {
+        if (array_map('strtolower', $key1->getLocalColumns()) != array_map('strtolower', $key2->getLocalColumns())) {
             return true;
         }
         
-        if ($key1->getForeignColumns() != $key2->getForeignColumns()) {
+        if (array_map('strtolower', $key1->getForeignColumns()) != array_map('strtolower', $key2->getForeignColumns())) {
             return true;
         }
 
-        if ($key1->hasOption('onUpdate') && $key->hasOption('onUpdate')) {
-            if ($key1->getOption('onUpdate') != $key2->getOption('onUpdate')) {
-                return true;
-            }
-        } else if ($key1->hasOption('onUpdate') != $key2->hasOption('onUpdate')) {
+        if ($key1->onUpdate() != $key2->onUpdate()) {
             return true;
         }
 
-        if ($key1->hasOption('onDelete') && $key2->hasOption('onDelete')) {
-            if ($key1->getOption('onDelete') != $key2->getOption('onDelete')) {
-                return true;
-            }
-        } else if ($key1->hasOption('onDelete') != $key2->hasOption('onDelete')) {
+        if ($key1->onDelete() != $key2->onDelete()) {
             return true;
         }
 
