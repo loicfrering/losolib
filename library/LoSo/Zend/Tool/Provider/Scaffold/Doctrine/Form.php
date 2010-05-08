@@ -29,7 +29,7 @@ class LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Form extends LoSo_Zend_Tool_Prov
         $init->setName('init');
 
         $body = '$this->setMethod(\'post\');' . PHP_EOL . PHP_EOL;
-        $fieldMappings = $metadata->getFieldMappings();
+        $fieldMappings = $metadata->fieldMappings;
         $identifierFields = $metadata->getIdentifierFieldNames();
         foreach($fieldMappings as $field => $fieldMapping) {
             if(!in_array($field, $identifierFields)) {
@@ -51,7 +51,7 @@ class LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Form extends LoSo_Zend_Tool_Prov
         $populate->setParameter(array('name' => $entityVar));
 
         $body = '';
-        $fields = $metadata->getFieldNames();
+        $fields = $metadata->fieldNames;
         $identifierFields = $metadata->getIdentifierFieldNames();
         foreach($fields as $field) {
             if(!in_array($field, $identifierFields)) {

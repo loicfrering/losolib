@@ -19,7 +19,7 @@ class LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Translation extends LoSo_Zend_To
         $metadata = $this->_getMetadata();
         $messageIds = $this->messageIds;
         $translation = '<?php' . PHP_EOL . 'return array(' . PHP_EOL;
-        $fields = $metadata->getFieldNames();
+        $fields = $metadata->fieldNames;
         $identifierFields = $metadata->getIdentifierFieldNames();
         foreach($fields as $field) {
             if(!in_array($field, $identifierFields)) {

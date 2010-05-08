@@ -10,7 +10,7 @@ class LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Partial extends LoSo_Zend_Tool_P
     {
         $metadata = $this->_getMetadata();
         $partial = '<dl>' . PHP_EOL;
-        $fields = $metadata->getFieldNames();
+        $fields = $metadata->fieldNames;
         $identifierFields = $metadata->getIdentifierFieldNames();
         foreach($fields as $field) {
             if(!in_array($field, $identifierFields)) {

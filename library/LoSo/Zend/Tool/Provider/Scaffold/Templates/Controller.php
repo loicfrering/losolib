@@ -91,7 +91,7 @@ class {%controllerNamespace}{%entity}Controller extends Zend_Controller_Action
         if($this->getRequest()->isPost()) {
             if(${%entityVar}Form->isValid($_POST)) {
                 $this->{%entityVar}Service->populate(${%entityVar}, ${%entityVar}Form->getValues());
-                $this->{%entityVar}Service->create(${%entityVar});
+                $this->{%entityVar}Service->update(${%entityVar});
                 $this->{%entityVar}Service->flush();
 
                 $this->_helper->flashMessenger($this->view->translate('{%module.entity.action.update.success}'));

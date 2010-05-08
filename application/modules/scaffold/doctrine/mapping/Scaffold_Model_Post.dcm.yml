@@ -1,4 +1,4 @@
-Application_Model_Post:
+Scaffold_Model_Post:
   type: entity
   table: post
   id:

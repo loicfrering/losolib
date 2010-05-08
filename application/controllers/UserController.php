@@ -1,4 +1,7 @@
 <?php
+/**
+ * @Service
+ */
 class UserController extends Zend_Controller_Action
 {
     /**
@@ -6,6 +9,11 @@ class UserController extends Zend_Controller_Action
      * @Inject
      */
     protected $userService;
+
+    public function setUserService($userService)
+    {
+        $this->userService = $userService;
+    }
 
     public function indexAction()
     {

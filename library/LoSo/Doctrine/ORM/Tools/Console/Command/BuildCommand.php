@@ -1,25 +1,6 @@
 <?php
-/*
- *  $Id$
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * This software consists of voluntary contributions made by many individuals
- * and is licensed under the LGPL. For more information, see
- * <http://www.doctrine-project.org>.
- */
 
-namespace Doctrine\ORM\Tools\Console\Command;
+namespace LoSo\Doctrine\ORM\Tools\Console\Command;
 
 use Symfony\Components\Console\Input\InputArgument,
     Symfony\Components\Console\Input\InputOption,
@@ -30,18 +11,22 @@ use Symfony\Components\Console\Input\InputArgument,
     Doctrine\ORM\Tools\DisconnectedClassMetadataFactory;
 
 /**
- * Command to convert your mapping information between the various formats.
- *
- * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
- * @link    www.doctrine-project.org
- * @since   2.0
- * @version $Revision$
- * @author  Benjamin Eberlei <kontakt@beberlei.de>
- * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
- * @author  Jonathan Wage <jonwage@gmail.com>
- * @author  Roman Borschel <roman@code-factory.org>
+ * Build task for easily re-building your Doctrine development environment.
+ * 
+ * This task has the following arguments:
+ * 
+ * <tt>--entities</tt>
+ * Build model classes.
+ * 
+ * <tt>--db</tt>
+ * Drop database, create database and create schema.
+ * 
+ * <tt>--all</tt>
+ * Build everything and reset the database.
+ * 
+ * @author  Loïc Frering <loic.frering@gmail.com>
  */
-class ConvertMappingCommand extends Console\Command\Command
+class BuildCommand extends Console\Command\Command
 {
     /**
      * @see Console\Command\Command
@@ -49,22 +34,24 @@ class ConvertMappingCommand extends Console\Command\Command
     protected function configure()
     {
         $this
-        ->setName('orm:convert-mapping')
-        ->setDescription('Convert mapping information between supported formats.')
+        ->setName('loso:build')
+        ->setDescription('Build task for easily re-building your Doctrine development environment.')
         ->setDefinition(array(
             new InputOption(
-                'filter', null, InputOption::PARAMETER_REQUIRED | InputOption::PARAMETER_IS_ARRAY,
-                'A string pattern used to match entities that should be processed.'
-            ),
-            new InputArgument(
-                'to-type', InputArgument::REQUIRED, 'The mapping type to be converted.'
-            ),
-            new InputArgument(
-                'dest-path', InputArgument::REQUIRED,
-                'The path to generate your entities classes.'
+                'generate-annotations', null, InputOption::PARAMETER_OPTIONAL,
+                'Flag to define if generator should generate annotation metadata on entities.', false
             ),
             new InputOption(
-                'from-database', null, null, 'Whether or not to convert mapping information from existing database.'
+                'generate-methods', null, InputOption::PARAMETER_OPTIONAL,
+                'Flag to define if generator should generate stub methods on entities.', true
+            ),
+            new InputOption(
+                'regenerate-entities', null, InputOption::PARAMETER_OPTIONAL,
+                'Flag to define if generator should regenerate entity if it exists.', false
+            ),
+            new InputOption(
+                'update-entities', null, InputOption::PARAMETER_OPTIONAL,
+                'Flag to define if generator should only update entity if it exists.', true
             ),
             new InputOption(
                 'extend', null, InputOption::PARAMETER_OPTIONAL,
@@ -76,7 +63,7 @@ class ConvertMappingCommand extends Console\Command\Command
             )
         ))
         ->setHelp(<<<EOT
-Convert mapping information between supported formats.
+Build task for easily re-building your Doctrine development environment.
 EOT
         );
     }
@@ -88,63 +75,94 @@ EOT
     {
         $em = $this->getHelper('em')->getEntityManager();
 
-        if ($input->getOption('from-database') === true) {
-            $em->getConfiguration()->setMetadataDriverImpl(
-                new \Doctrine\ORM\Mapping\Driver\DatabaseDriver(
-                    $em->getConnection()->getSchemaManager()
-                )
-            );
+        if(\Zend_Registry::isRegistered(\LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex())
+            && ($container = \Zend_Registry::get(\LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex())) instanceof \Symfony\Components\DependencyInjection\ContainerInterface) {
+            $mappingPaths = $container->getParameter('doctrine.orm.mapping_paths');
+            $entitiesPaths = $container->getParameter('doctrine.orm.entities_paths');
+        }
+        else {
+            $doctrineConfig = \Zend_Registry::get('doctrine.config');
+            $mappingPaths = $doctrineConfig['doctrine.orm.mapping_paths'];
+            $entitiesPaths = $doctrineConfig['doctrine.orm.entities_paths'];
         }
 
         $cmf = new DisconnectedClassMetadataFactory($em);
-        $metadata = $cmf->getAllMetadata();
-        $metadata = MetadataFilter::filter($metadata, $input->getOption('filter'));
+        $metadatas = $cmf->getAllMetadata();
 
-        // Process destination directory
-        if ( ! is_dir($destPath = $input->getArgument('dest-path'))) {
-            mkdir($destPath, 0777, true);
-        }
-        $destPath = realpath($destPath);
+        foreach($mappingPaths as $namespace => $mappingPath) {
+            // Process destination directory
+            $destPath = realpath($entitiesPaths[$namespace]);
 
-        if ( ! file_exists($destPath)) {
-            throw new \InvalidArgumentException(
-                sprintf("Mapping destination directory '<info>%s</info>' does not exist.", $destPath)
-            );
-        } else if ( ! is_writable($destPath)) {
-            throw new \InvalidArgumentException(
-                sprintf("Mapping destination directory '<info>%s</info>' does not have write permissions.", $destPath)
-            );
-        }
-
-        $toType = strtolower($input->getArgument('to-type'));
-
-        $cme = new ClassMetadataExporter();
-        $exporter = $cme->getExporter($toType, $destPath);
-
-        if ($toType == 'annotation') {
-            $entityGenerator = new EntityGenerator();
-            $exporter->setEntityGenerator($entityGenerator);
-
-            $entityGenerator->setNumSpaces($input->getOption('num-spaces'));
-
-            if (($extend = $input->getOption('extend')) !== null) {
-                $entityGenerator->setClassToExtend($extend);
-            }
-        }
-
-        if (count($metadata)) {
-            foreach ($metadata as $class) {
-                $output->write(sprintf('Processing entity "<info>%s</info>"', $class->name) . PHP_EOL);
+            if ( ! file_exists($destPath)) {
+                throw new \InvalidArgumentException(
+                    sprintf("Entities destination directory '<info>%s</info>' does not exist.", $destPath)
+                );
+            } else if ( ! is_writable($destPath)) {
+                throw new \InvalidArgumentException(
+                    sprintf("Entities destination directory '<info>%s</info>' does not have write permissions.", $destPath)
+                );
             }
 
-            $exporter->setMetadata($metadata);
-            $exporter->export();
+            $moduleMetadatas = MetadataFilter::filter($metadatas, $namespace);
+            if (count($moduleMetadatas)) {
+                // Create EntityGenerator
+                $entityGenerator = new EntityGenerator();
 
-            $output->write(PHP_EOL . sprintf(
-                'Exporting "<info>%s</info>" mapping information to "<info>%s</info>"' . PHP_EOL, $toType, $destPath
-            ));
-        } else {
-            $output->write('No Metadata Classes to process.' . PHP_EOL);
+                $entityGenerator->setGenerateAnnotations($input->getOption('generate-annotations'));
+                $entityGenerator->setGenerateStubMethods($input->getOption('generate-methods'));
+                $entityGenerator->setRegenerateEntityIfExists($input->getOption('regenerate-entities'));
+                $entityGenerator->setUpdateEntityIfExists($input->getOption('update-entities'));
+                $entityGenerator->setNumSpaces($input->getOption('num-spaces'));
+
+                if (($extend = $input->getOption('extend')) !== null) {
+                    $entityGenerator->setClassToExtend($extend);
+                }
+
+                foreach ($moduleMetadatas as $metadata) {
+                    $output->write(sprintf('Processing entity "<info>%s</info>"', $metadata->name) . PHP_EOL);
+                }
+
+                // Generating Entities
+                $entityGenerator->generate($moduleMetadatas, $destPath);
+                $this->_processNamespaces($destPath, $namespace);
+
+                // Outputting information message
+                $output->write(sprintf('Entity classes generated to "<info>%s</INFO>"', $destPath) . PHP_EOL);
+
+
+            } else {
+                $output->write('No Metadata Classes to process.' . PHP_EOL);
+            }
+
+        }
+
+        /*$output->write(PHP_EOL . 'Reset database.' . PHP_EOL);
+
+        $metadatas = $em->getMetadataFactory()->getAllMetadata();
+        $schemaTool = new \Doctrine\ORM\Tools\SchemaTool($em);
+        $output->write('Dropping database schema...' . PHP_EOL);
+        $schemaTool->dropSchema($metadatas);
+        $output->write('Database schema dropped successfully!' . PHP_EOL);
+        $output->write('Creating database schema...' . PHP_EOL);
+        $schemaTool->createSchema($metadatas);
+        $output->write('Database schema created successfully!' . PHP_EOL);*/
+    }
+
+    protected function _processNamespaces($path, $baseNamespace)
+    {
+        $directoryIterator = new \DirectoryIterator($path);
+        foreach($directoryIterator as $fileInfo) {
+            if($fileInfo->isFile()) {
+                $suffix = strtolower(pathinfo($fileInfo->getPathname(), PATHINFO_EXTENSION));
+                if($suffix == 'php') {
+                    $path = $fileInfo->getPath();
+                    $fileName = $fileInfo->getBasename();
+                    if(strpos($fileName, '_') !== false) {
+                        $newFileName = str_replace($baseNamespace, '', $fileName);
+                        rename($path . DIRECTORY_SEPARATOR . $fileName, $path . DIRECTORY_SEPARATOR . $newFileName);
+                    }
+                }
+            }
         }
     }
 }

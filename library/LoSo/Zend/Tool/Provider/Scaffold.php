@@ -78,7 +78,7 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         $this->_prepare($entityName, $module);
         $this->_registry->getResponse()->appendContent('Scaffold translation for ' . $entityName);
 
-        $translationScaffold = new LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Translation($this->_getEntityName(), $this->_getModule(), $this->_getAppNamespace(), $this->_getMessageIds());
+        $translationScaffold = new LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Translation($this->_getEntityName(), $this->_getModule(), $this->_getModuleNamespace(), $this->_getMessageIds());
         $translation = $this->_parse($translationScaffold->scaffold());
         $this->_write($translation, 'languages/en/' . $this->_getEntityVarName() . '.php', $forceOverwrite);
 

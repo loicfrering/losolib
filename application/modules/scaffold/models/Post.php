@@ -1,31 +1,42 @@
 <?php
 
 
+
 /**
- * @Entity
+ * Scaffold_Model_Post
+ *
  * @Table(name="post")
+ * @Entity
  */
 class Scaffold_Model_Post
 {
     /**
+     * @var integer $id
+     *
      * @Column(name="id", type="integer")
      * @Id
-     * @GeneratedValue(strategy="AUTO")
+     * @GeneratedValue(strategy="IDENTITY")
      */
     private $id;
 
     /**
+     * @var string $title
+     *
      * @Column(name="title", type="string", length=100)
      */
     private $title;
 
     /**
+     * @var string $body
+     *
      * @Column(name="body", type="string")
      */
     private $body;
 
     /**
      * Get id
+     *
+     * @return integer $id
      */
     public function getId()
     {
@@ -34,14 +45,18 @@ class Scaffold_Model_Post
 
     /**
      * Set title
+     *
+     * @param string $title
      */
-    public function setTitle($value)
+    public function setTitle($title)
     {
-        $this->title = $value;
+        $this->title = $title;
     }
 
     /**
      * Get title
+     *
+     * @return string $title
      */
     public function getTitle()
     {
@@ -50,14 +65,18 @@ class Scaffold_Model_Post
 
     /**
      * Set body
+     *
+     * @param string $body
      */
-    public function setBody($value)
+    public function setBody($body)
     {
-        $this->body = $value;
+        $this->body = $body;
     }
 
     /**
      * Get body
+     *
+     * @return string $body
      */
     public function getBody()
     {

@@ -91,7 +91,7 @@ class Scaffold_PostController extends Zend_Controller_Action
         if($this->getRequest()->isPost()) {
             if($postForm->isValid($_POST)) {
                 $this->postService->populate($post, $postForm->getValues());
-                $this->postService->create($post);
+                $this->postService->update($post);
                 $this->postService->flush();
 
                 $this->_helper->flashMessenger($this->view->translate('Post successfully updated.'));

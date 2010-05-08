@@ -35,5 +35,8 @@ $cli->addCommands(array(
     new \Doctrine\ORM\Tools\Console\Command\ConvertMappingCommand(),
     new \Doctrine\ORM\Tools\Console\Command\RunDqlCommand(),
 
+    // LoSo Commands
+    new \LoSo\Doctrine\ORM\Tools\Console\Command\BuildCommand(),
+
 ));
 $cli->run();

@@ -2,6 +2,9 @@
 use Doctrine\Common\ClassLoader,
     Doctrine\ORM\Configuration,
     Doctrine\ORM\EntityManager,
+    Doctrine\ORM\Mapping\Driver\YamlDriver,
+    Doctrine\ORM\Mapping\Driver\XmlDriver,
+    Doctrine\ORM\Mapping\Driver\PhpDriver,
     Doctrine\Common\Cache\ApcCache,
     Doctrine\Common\Cache\MemcacheCache,
     Doctrine\Common\Cache\XcacheCache,
@@ -21,8 +24,9 @@ class LoSo_Zend_Application_Resource_Doctrine2 extends Zend_Application_Resource
         $options = $this->getOptions();
 
         $this->_config = new Configuration;
-        $driverImpl = $this->_config->newDefaultAnnotationDriver(array(APPLICATION_PATH . '/' . $options['config']['entitiesDir']));
-        $this->_config->setMetadataDriverImpl($driverImpl);
+
+        // Metadata driver
+        $this->_initMetadataDriver();
 
         // Parameters
         $this->_initParameters();
@@ -40,6 +44,33 @@ class LoSo_Zend_Application_Resource_Doctrine2 extends Zend_Application_Resource
         $em = EntityManager::create($connectionOptions, $this->_config);
         $this->getBootstrap()->getContainer()->em = $em;
         return $em;
+    }
+
+    protected function _initMetadataDriver()
+    {
+        $options = $this->getOptions();
+
+        $mappingPaths = $options['metadata']['mappingPaths'];
+
+        $driver = $options['metadata']['driver'];
+        switch($driver) {
+            case 'yaml':
+                $driver = new YamlDriver($mappingPaths);
+                break;
+
+            case 'xml':
+                $driver = new XmlDriver($mappingPaths);
+                break;
+
+            case 'php':
+                $driver = new PhpDriver($mappingPaths);
+                break;
+
+            default:
+                $driver = $this->_çconfig->newDefaultAnnotationDriver($mappingPaths);
+        }
+
+        $this->_config->setMetadataDriverImpl($driver);
     }
 
     protected function _initCache()
@@ -83,13 +114,13 @@ class LoSo_Zend_Application_Resource_Doctrine2 extends Zend_Application_Resource
         $options = $this->getOptions();
         $container = $this->getBootstrap()->getApplication()->getBootstrap()->getContainer();
         if($container instanceof \Symfony\Components\DependencyInjection\ContainerInterface) {
-            $container->setParameter('doctrine.orm.mapping_dir', $options['config']['mappingDir']);
-            $container->setParameter('doctrine.orm.entities_dir', $options['config']['entitiesDir']);
+            $container->setParameter('doctrine.orm.mapping_paths', $options['metadata']['mappingPaths']);
+            $container->setParameter('doctrine.orm.entities_paths', $options['metadata']['entitiesPaths']);
         }
         else {
             Zend_Registry::set('doctrine.config', array(
-                'doctrine.orm.mapping_dir' => $options['config']['mappingDir'],
-                'doctrine.orm.entities_dir' => $options['config']['entitiesDir']
+                'doctrine.orm.mapping_paths' => $options['metadata']['mappingPaths'],
+                'doctrine.orm.entities_paths' => $options['metadata']['entitiesPaths']
             ));
         }
     }

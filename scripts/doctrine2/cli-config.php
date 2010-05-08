@@ -21,14 +21,9 @@ $application = new Zend_Application(
     APPLICATION_ENV,
     APPLICATION_PATH . '/configs/application.ini'
 );
-$application->bootstrap('Doctrine2');
-
-Zend_Loader_Autoloader::getInstance()->pushAutoloader(array('LoSo_Symfony_Components_Autoloader', 'autoload'));
+$application->bootstrap(array('Doctrine2', 'Modules'));
 
 $em = $application->getBootstrap()->doctrine2;
-
-/*$configuration = new \Doctrine\Common\Cli\Configuration();
-$configuration->setAttribute('em', $em);*/
 
 $helpers = array(
     'db' => new \Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper($em->getConnection()),
