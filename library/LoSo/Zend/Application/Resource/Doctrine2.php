@@ -67,7 +67,7 @@ class LoSo_Zend_Application_Resource_Doctrine2 extends Zend_Application_Resource
                 break;
 
             default:
-                $driver = $this->_çconfig->newDefaultAnnotationDriver($mappingPaths);
+                $driver = $this->_config->newDefaultAnnotationDriver($mappingPaths);
         }
 
         $this->_config->setMetadataDriverImpl($driver);

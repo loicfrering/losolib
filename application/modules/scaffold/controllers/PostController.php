@@ -2,7 +2,7 @@
 /**
  * @Service
  */
-class Scaffold_PostController extends Zend_Controller_Action
+class Scaffold_PostController extends LoSo_Zend_Controller_Action
 {
     /**
      * @var Scaffold_Service_Doctrine_PostService

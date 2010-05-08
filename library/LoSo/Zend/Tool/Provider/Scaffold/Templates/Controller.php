@@ -2,7 +2,7 @@
 /**
  * @Service
  */
-class {%controllerNamespace}{%entity}Controller extends Zend_Controller_Action
+class {%controllerNamespace}{%entity}Controller extends LoSo_Zend_Controller_Action
 {
     /**
      * @var {%moduleNamespace}_Service_Doctrine_{%entity}Service

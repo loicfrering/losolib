@@ -2,7 +2,7 @@
 /**
  * @Service
  */
-class UserController extends Zend_Controller_Action
+class UserController extends LoSo_Zend_Controller_Action
 {
     /**
      * @var Application_Service_Doctrine_UserService
