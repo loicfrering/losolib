@@ -5,7 +5,7 @@
  * @author Loïc Frering <loic.frering@gmail.com>
  * @Service
  */
-class DiController extends Zend_Controller_Action
+class DiController extends LoSo_Zend_Controller_Action
 {
     /**
      * @var Application_Service_TestService

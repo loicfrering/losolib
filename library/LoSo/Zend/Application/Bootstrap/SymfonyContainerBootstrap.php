@@ -14,9 +14,9 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
 
     public function run()
     {
-        // Load service container if no cached or if we want to cache and cache doesn't esist
+        // Load service container if not cached or if we want to cache and cache doesn't esist
         if(!$this->_doCache() || ($this->_doCache() && !$this->_cacheExists())) {
-            $this->_loadContainer();
+            $this->_loadControllersInContainer();
         }
         // Cache loaded service container if we want to cache and cache doesn't already exist
         if($this->_doCache() && !$this->_cacheExists()) {
@@ -34,14 +34,15 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
                 $cacheFile = $this->_getCacheFile();
                 $cacheName = pathinfo($cacheFile, PATHINFO_FILENAME);
                 require_once $cacheFile;
-                $container = new $cacheName();
+                $this->_container = new $cacheName();
             }
             else {
-                $container = new \Symfony\Components\DependencyInjection\Builder();
+                $this->_container = new \Symfony\Components\DependencyInjection\Builder();
+                $this->_loadContainer();
+                $this->_cacheContainer();
             }
 
-            $this->_container = $container;
-            Zend_Registry::set(self::getRegistryIndex(), $container);
+            Zend_Registry::set(self::getRegistryIndex(), $this->_container);
             Zend_Controller_Action_HelperBroker::addHelper(new LoSo_Zend_Controller_Action_Helper_DependencyInjection());
         }
         return parent::getContainer();
@@ -103,6 +104,14 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
                 $configuration->merge($this->_loadPath($path));
             }
         }
+
+        $container->merge($configuration);
+    }
+
+    protected function _loadControllersInContainer()
+    {
+        $container = $this->getContainer();
+        $configuration = new \Symfony\Components\DependencyInjection\BuilderConfiguration();
 
         // Load controllers into service container
         $loader = new \LoSo\Symfony\Components\DependencyInjection\Loader\ZendControllerLoader($this->getContainer());
