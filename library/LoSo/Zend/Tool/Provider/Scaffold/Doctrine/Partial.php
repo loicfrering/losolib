@@ -17,7 +17,7 @@ class LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Partial extends LoSo_Zend_Tool_P
                 switch($metadata->getTypeOfField('firstname')) {
                     default:
                     $partial .= '    <dt><?= $this->translate(\'' . ucfirst($field) . '\') ?></dt>' . PHP_EOL;
-                    $partial .= '    <dd><?= $this->entity->get' . ucfirst($field) . '() ?></dd>' . PHP_EOL;
+                    $partial .= '    <dd><?= $this->escape($this->entity->get' . ucfirst($field) . '()) ?></dd>' . PHP_EOL;
                 }
             }
         }

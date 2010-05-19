@@ -99,7 +99,7 @@ class AnnotationsLoader extends Loader
     {
         $properties = $r->getProperties();
         foreach($properties as $property) {
-            if($property->getDocComment() && $property->getDeclaringClass()->getName() == $r->getName()) {
+            if($property->getDocComment()) {
                 $docblock = $property->getDocComment();
                 foreach($this->_annotations as $annotation) {
                     if($docblock->hasTag($annotation->getName())) {
