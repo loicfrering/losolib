@@ -9,26 +9,30 @@ class LoSo_Zend_Application_Resource_Navigation extends Zend_Application_Resourc
     public function init()
     {
         $options = $this->getOptions();
+        if (isset($options['configFile'])) {
+            if (!$this->_container) {
+                $config = $this->_loadConfig($options['configFile']);
+                $this->_container = new Zend_Navigation($config);
+            }
 
-        if(isset($options['configFile'])) {
-            $this->setOptions($this->_loadConfig($options['configFile']));
+            $this->store();
+            return $this->_container;
+        } else {
+            return parent::init();
         }
-
-        parent::init();
     }
 
     protected function _loadConfig($file)
     {
-        $environment = $this->getBootstrap()->getEnvironment();
-        $suffix      = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $suffix = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 
         switch ($suffix) {
             case 'ini':
-                $config = new Zend_Config_Ini($file, $environment);
+                $config = new Zend_Config_Ini($file);
                 break;
 
             case 'xml':
-                $config = new Zend_Config_Xml($file, $environment);
+                $config = new Zend_Config_Xml($file);
                 break;
 
             case 'php':
@@ -44,6 +48,7 @@ class LoSo_Zend_Application_Resource_Navigation extends Zend_Application_Resourc
                 throw new Zend_Application_Exception('Invalid configuration file provided; unknown config type');
         }
 
-        return $config->toArray();
+        return $config;
     }
 }
+

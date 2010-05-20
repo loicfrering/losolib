@@ -39,7 +39,9 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
             else {
                 $this->_container = new \Symfony\Components\DependencyInjection\Builder();
                 $this->_loadContainer();
-                $this->_cacheContainer();
+                if($this->_doCache() && !$this->_cacheExists()) {
+                    $this->_cacheContainer();
+                }
             }
 
             Zend_Registry::set(self::getRegistryIndex(), $this->_container);
