@@ -70,7 +70,7 @@ class LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Form extends LoSo_Zend_Tool_Prov
     {
         $field = $fieldMapping['fieldName'];
         $element = '$this->addElement(\'' . $this->_getElementType($fieldMapping) . '\', \'' . $field . '\', array(' . PHP_EOL;
-        if(!$fieldMapping['nullable']) {
+        if(!isset($fieldMapping['nullable']) || !$fieldMapping['nullable']) {
             $element .= '    \'required\' => true,' . PHP_EOL;
         }
         $element .= $this->_getValidators($fieldMapping);
@@ -83,7 +83,7 @@ class LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Form extends LoSo_Zend_Tool_Prov
     {
         switch($fieldMapping['type']) {
             case 'string':
-                return (null === $fieldMapping['length']) ? 'textarea' : 'text';
+                return isset($fieldMapping['length']) ? 'text' : 'textarea';
 
             default:
                 return 'text';
@@ -111,7 +111,7 @@ class LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Form extends LoSo_Zend_Tool_Prov
                 break;
 
             case 'string':
-                if(null !== $fieldMapping['length']) {
+                if(isset($fieldMapping['length'])) {
                     $validators .= '        array(\'stringLength\', false, array(0, ' . $fieldMapping['length'] . '))' . PHP_EOL;
                 }
                 break;

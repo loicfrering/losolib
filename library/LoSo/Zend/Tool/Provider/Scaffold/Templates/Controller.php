@@ -121,9 +121,9 @@ class {%controllerNamespace}{%entity}Controller extends LoSo_Zend_Controller_Act
 
     protected function _find{%entity}($id)
     {
-        ${%entityVar} = $this->{%entityVar}Service->find($this->_getParam('id'));
+        ${%entityVar} = $this->{%entityVar}Service->find($id);
         if(null === ${%entityVar}) {
-            $this->_helper->flashMessenger($this->view->translate('{%module.entity.notfound.id}', $this->_getParam('id')));
+            $this->_helper->flashMessenger($this->view->translate('{%module.entity.notfound.id}', $id));
             return $this->_helper->redirector('list');
         }
         return ${%entityVar};

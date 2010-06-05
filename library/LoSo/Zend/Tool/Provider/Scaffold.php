@@ -5,6 +5,7 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
     protected $appNamespace;
     protected $module;
     protected $frontController;
+    protected $bootstrap;
 
     public function controller($entityName, $module = null, $forceOverwrite = false)
     {
@@ -37,7 +38,7 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
             $this->_write($view, $viewsDirectory . '/' . $action . '.phtml', $forceOverwrite);
         }
 
-        $partialScaffold = new LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Partial($this->_getEntityName(), $this->_getModule(), $this->_getModuleNamespace());
+        $partialScaffold = new LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Partial($this->_getEntityName(), $this->_getModule(), $this->_getModuleNamespace(), $this->_getBootstrap());
         $partial = $this->_parse($partialScaffold->scaffold());
         $this->_write($partial, $viewsDirectory . '/partial' . $this->_getEntityName() . '.phtml', $forceOverwrite);
     }
@@ -68,7 +69,7 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         $this->_prepare($entityName, $module);
         $this->_registry->getResponse()->appendContent('Scaffold form for ' . $entityName);
 
-        $formScaffold = new LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Form($this->_getEntityName(), $this->_getModule(), $this->_getModuleNamespace());
+        $formScaffold = new LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Form($this->_getEntityName(), $this->_getModule(), $this->_getModuleNamespace(), $this->_getBootstrap());
         $form = $this->_parse($formScaffold->scaffold());
         $this->_write($form, $this->_getModuleDirectory() . '/forms/' . $entityName . '.php', $forceOverwrite);
     }
@@ -78,7 +79,7 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         $this->_prepare($entityName, $module);
         $this->_registry->getResponse()->appendContent('Scaffold translation for ' . $entityName);
 
-        $translationScaffold = new LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Translation($this->_getEntityName(), $this->_getModule(), $this->_getModuleNamespace(), $this->_getMessageIds());
+        $translationScaffold = new LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Translation($this->_getEntityName(), $this->_getModule(), $this->_getModuleNamespace(), $this->_getBootstrap(), $this->_getMessageIds());
         $translation = $this->_parse($translationScaffold->scaffold());
         $this->_write($translation, 'languages/en/' . $this->_getEntityVarName() . '.php', $forceOverwrite);
 
@@ -148,6 +149,11 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
     protected function _getControllerDirectory()
     {
         return $this->frontController->getControllerDirectory($this->_getModule());
+    }
+
+    protected function _getBootstrap()
+    {
+        return $this->bootstrap;
     }
 
     protected function _write($content, $path, $forceOverwrite = false)
@@ -244,6 +250,7 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         $application->bootstrap(array('FrontController', 'Modules'));
         $this->appNamespace = $application->getBootstrap()->getAppNamespace();
         $this->frontController = $application->getBootstrap()->frontController;
+        $this->bootstrap = $application->getBootstrap();
     }
 
     protected function _getMessageIds()

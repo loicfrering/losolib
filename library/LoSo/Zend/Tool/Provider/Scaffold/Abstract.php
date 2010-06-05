@@ -4,12 +4,14 @@ abstract class LoSo_Zend_Tool_Provider_Scaffold_Abstract
     protected $entityName;
     protected $module;
     protected $moduleNamespace;
+    protected $bootstrap;
 
-    public function __construct($entityName, $module, $moduleNamespace)
+    public function __construct($entityName, $module, $moduleNamespace, $bootstrap = null)
     {
         $this->entityName = $entityName;
         $this->module = $module;
         $this->moduleNamespace = $moduleNamespace;
+        $this->bootstrap = $bootstrap;
     }
 
     abstract public function scaffold();

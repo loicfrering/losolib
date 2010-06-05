@@ -3,9 +3,9 @@ class LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Translation extends LoSo_Zend_To
 {
     protected $messageIds;
 
-    public function __construct($entityName, $module, $appnamespace, $messageIds)
+    public function __construct($entityName, $module, $appnamespace, $bootstrap, $messageIds)
     {
-        parent::__construct($entityName, $module, $appnamespace);
+        parent::__construct($entityName, $module, $appnamespace, $bootstrap);
         $this->messageIds = $messageIds;
     }
 

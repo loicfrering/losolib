@@ -6,14 +6,13 @@ abstract class LoSo_Zend_Tool_Provider_Scaffold_Doctrine_Abstract extends LoSo_Z
     protected function _getMetadata()
     {
         if(null === $this->metadata) {
+            $this->bootstrap->bootstrap('Doctrine2');
+            $em = $this->bootstrap->getResource('Doctrine2');
+            $cmf = new \Doctrine\ORM\Tools\DisconnectedClassMetadataFactory($em);
+            $metadatas = $cmf->getAllMetadata();
             $entityName = $this->_getEntityName();
-            Zend_Loader_Autoloader::getInstance()->registerNamespace('Doctrine');
             $entityClass = $this->_getModuleNamespace() . '_Model_' . $entityName;
-            $metadata = new Doctrine\ORM\Mapping\ClassMetadata($entityClass);
-            $reader = new \Doctrine\Common\Annotations\AnnotationReader(new \Doctrine\Common\Cache\ArrayCache);
-            $reader->setDefaultAnnotationNamespace('Doctrine\ORM\Mapping\\');
-            $driver = new \Doctrine\ORM\Mapping\Driver\AnnotationDriver($reader);
-            $driver->loadMetadataForClass($entityClass, $metadata);
+            $metadata = current(\Doctrine\ORM\Tools\Console\MetadataFilter::filter($metadatas, $entityClass));
             $this->metadata = $metadata;
         }
         return $this->metadata;
