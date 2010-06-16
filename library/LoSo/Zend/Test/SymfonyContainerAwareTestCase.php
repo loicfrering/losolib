@@ -1,11 +1,17 @@
 <?php
 /**
- * Description of LoSo_Zend_Test_SymfonyContainerAwareTestCase
+ * Provide support to Dependency Injection into test cases.
  *
- * @author Loïc Frering <loic.frering@gmail.com>
+ * @category   Zend
+ * @package    LoSo_Zend
+ * @subpackage Test
+ * @author     Loïc Frering <loic.frering@gmail.com>
  */
 class LoSo_Zend_Test_SymfonyContainerAwareTestCase extends LoSo_Zend_Test_TestCase
 {
+    /**
+     * Check for dependencies and inject them if needed.
+     */
     protected function setUp()
     {
         parent::setUp();
@@ -30,6 +36,12 @@ class LoSo_Zend_Test_SymfonyContainerAwareTestCase extends LoSo_Zend_Test_TestCa
         }
     }
 
+    /**
+     * Format service name.
+     *
+     * @param  string $serviceName
+     * @return string
+     */
     protected function _formatServiceName($serviceName)
     {
         if(strpos($serviceName, '_') === 0) {

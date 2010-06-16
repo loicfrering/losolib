@@ -1,8 +1,10 @@
 <?php
 /**
- * Description of LoSo_Exception
+ * Base exception for LoSo.
  *
- * @author Loïc Frering <loic.frering@gmail.com>
+ * @category   LoSo
+ * @package    LoSo
+ * @author     Loïc Frering <loic.frering@gmail.com>
  */
 class LoSo_Exception extends Exception
 {

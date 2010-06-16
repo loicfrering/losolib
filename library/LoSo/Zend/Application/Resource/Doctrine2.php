@@ -13,12 +13,25 @@ use Doctrine\Common\ClassLoader,
 /**
  * An application resource for initializing your Doctrine2 environment
  *
- * @author Loïc Frering <loic.frering@gmail.com>
+ * @category   Zend
+ * @package    LoSo_Zend_Application
+ * @subpackage Resource
+ * @author     Loïc Frering <loic.frering@gmail.com>
  */
 class LoSo_Zend_Application_Resource_Doctrine2 extends Zend_Application_Resource_ResourceAbstract
 {
+    /**
+     * Configuration options for Doctrine.
+     *
+     * @var \Doctrine\ORM\Configuration
+     */
     protected $_config;
 
+    /**
+     * Initialize Doctrine.
+     *
+     * @return Doctrine\ORM\EntityManager
+     */
     public function init()
     {
         $options = $this->getOptions();
@@ -46,6 +59,11 @@ class LoSo_Zend_Application_Resource_Doctrine2 extends Zend_Application_Resource
         return $em;
     }
 
+    /**
+     * Initialize metadata driver from resource options.
+     *
+     * @return void
+     */
     protected function _initMetadataDriver()
     {
         $options = $this->getOptions();
@@ -73,6 +91,11 @@ class LoSo_Zend_Application_Resource_Doctrine2 extends Zend_Application_Resource
         $this->_config->setMetadataDriverImpl($driver);
     }
 
+    /**
+     * Initialize Doctrine cache configuration from resource options.
+     *
+     * @return void
+     */
     protected function _initCache()
     {
         $options = $this->getOptions();
@@ -96,19 +119,34 @@ class LoSo_Zend_Application_Resource_Doctrine2 extends Zend_Application_Resource
         $this->_config->setQueryCacheImpl($cache);
     }
 
+    /**
+     * Initialize Doctrine proxy configuration from resource options.
+     *
+     * @return void
+     */
     protected function _initProxy()
     {
         $options = $this->getOptions();
-        $this->_config->setProxyDir(isset($options['proxy']['directory']) ? $options['proxy']['directory'] : APPLICATION_PATH . '/doctrine2/Proxies');
+        $this->_config->setProxyDir(isset($options['proxy']['directory']) ? $options['proxy']['directory'] : APPLICATION_PATH . '/data/doctrine2/Proxies');
         $this->_config->setProxyNamespace(isset($options['proxy']['namespace']) ? $options['proxy']['namespace'] : 'Proxies');
     }
 
+    /**
+     * Initialize Doctrine connection configuration from resource options.
+     *
+     * @return void
+     */
     protected function _initConnection()
     {
         $options = $this->getOptions();
         return $options['connection'];
     }
 
+    /**
+     * Save Doctrine parameters for latter retrieving.
+     *
+     * @return void
+     */
     protected function _initParameters()
     {
         $options = $this->getOptions();

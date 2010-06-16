@@ -1,17 +1,48 @@
 <?php
 /**
- * Description of LoSo_Zend_Application_Bootstrap_Bootstrap
+ * Extension of the default bootstrap class with Symfony Dependency Injection container integration instead
+ * of the default registry container.
+ * Support advanced container caching for performance optimization.
  *
- * @author Loïc Frering <loic.frering@gmail.com>
+ * @category   Zend
+ * @package    LoSo_Zend_Application
+ * @subpackage Bootstrap
+ * @author     Loïc Frering <loic.frering@gmail.com>
  */
 class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_Application_Bootstrap_Bootstrap
 {
+    /**
+     * Default container registry index.
+     *
+     * @var string
+     */
     protected static $_registryIndex = 'container';
 
+    /**
+     * Does the container has to be cached?
+     *
+     * @var bool
+     */
     protected $_doCache;
+
+    /**
+     * Does a cache file already exists?
+     *
+     * @var bool
+     */
     protected $_cacheExists;
+
+    /**
+     * File where the cached container has to be written.
+     *
+     * @var string
+     */
     protected $_cacheFile;
 
+    /**
+     * Load controllers into service container and cache if necessary.
+     * {@inheritdoc}
+     */
     public function run()
     {
         // Load service container if not cached or if we want to cache and cache doesn't esist
@@ -25,6 +56,11 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         parent::run();
     }
 
+    /**
+     * Get Symfony container instead of default registry container.
+     * Load container from cache if necessary.
+     * {@inheritdoc}
+     */
     public function getContainer()
     {
         $options = $this->getOption('bootstrap');
@@ -50,6 +86,11 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         return parent::getContainer();
     }
 
+    /**
+     * Check whether the container has to be cached.
+     *
+     * @return bool
+     */
     protected function _doCache()
     {
         if(null === $this->_doCache) {
@@ -60,6 +101,11 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         return $this->_doCache;
     }
 
+    /**
+     * Check if a cache already exists.
+     *
+     * @return bool
+     */
     protected function _cacheExists()
     {
         if(null === $this->_cacheExists) {
@@ -69,6 +115,11 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         return $this->_cacheExists;
     }
 
+    /**
+     * Return the file where the cache would be written.
+     *
+     * @return string
+     */
     protected function _getCacheFile()
     {
         if(null === $this->_cacheFile) {
@@ -86,6 +137,11 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         return $this->_cacheFile;
     }
 
+    /**
+     * Load services from configuration files or paths into the service container.
+     *
+     * @return void
+     */
     protected function _loadContainer()
     {
         $options = $this->getOption('bootstrap');
@@ -110,6 +166,11 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         $container->merge($configuration);
     }
 
+    /**
+     * Load controllers into the service container for lifecycle and dependency management.
+     *
+     * @return void
+     */
     protected function _loadControllersInContainer()
     {
         $container = $this->getContainer();
@@ -126,6 +187,11 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         $container->merge($configuration);
     }
 
+    /**
+     * Dump the service container into a plain PHP cached container file.
+     *
+     * @return void
+     */
     protected function _cacheContainer()
     {
         $cacheFile = $this->_getCacheFile();
@@ -134,6 +200,12 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         file_put_contents($cacheFile, $dumper->dump(array('class' => $cacheName)));
     }
 
+    /**
+     * Load a particular config file, XML, YAML or INI, into the service container.
+     *
+     * @param  string $file A configuration file
+     * @return Symfony\Components\DependencyInjection\BuilderConfiguration
+     */
     protected function _loadConfigFile($file)
     {
         $suffix = strtolower(pathinfo($file, PATHINFO_EXTENSION));
@@ -157,17 +229,34 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         return $loader->load($file);
     }
 
+    /**
+     * Load classes in a particular path into the service container thanks to the annotation loader.
+     *
+     * @param  string $path A path with annotated classes
+     * @return Symfony\Components\DependencyInjection\BuilderConfiguration
+     */
     protected function _loadPath($path)
     {
         $loader = new \LoSo\Symfony\Components\DependencyInjection\Loader\AnnotationsLoader();
         return $loader->load($path);
     }
 
+    /**
+     * Get container's registry index.
+     *
+     * @return string
+     */
     public static function getRegistryIndex()
     {
         return self::$_registryIndex;
     }
 
+    /**
+     * Set container's registry index.
+     *
+     * @param  string $registryIndex
+     * @return LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap
+     */
     public static function setRegistryIndex($registryIndex)
     {
         self::$_registryIndex = $registryIndex;

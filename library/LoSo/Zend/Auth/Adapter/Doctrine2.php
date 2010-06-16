@@ -1,11 +1,51 @@
 <?php
+/**
+ * An application resource for initializing your Doctrine2 environment
+ *
+ * @category   Zend
+ * @package    LoSo_Zend_Auth
+ * @subpackage Adapter
+ * @author     Loïc Frering <loic.frering@gmail.com>
+ */
 class LoSo_Zend_Auth_Adapter_Doctrine2 implements Zend_Auth_Adapter_Interface
 {
+    /**
+     * Doctrine EntityManager
+     *
+     * @var Doctrine\ORM\EntityManager
+     */
     protected $em;
+
+    /**
+     * The entity name to check for an identity.
+     *
+     * @var string
+     */
     protected $entityName;
+
+    /**
+     * Field to be used as identity.
+     *
+     * @var string
+     */
     protected $identityField;
+
+    /**
+     * The field to be used as credential.
+     *
+     * @var string
+     */
     protected $credentialField;
 
+    /**
+     * Constructor sets configuration options.
+     *
+     * @param  Doctrine\ORM\EntiyManager
+     * @param  string
+     * @param  string
+     * @param  string
+     * @return void
+     */
     public function __construct($em, $entityName = null, $identityField = null, $credentialField = null)
     {
         $this->em = $em;
@@ -23,36 +63,75 @@ class LoSo_Zend_Auth_Adapter_Doctrine2 implements Zend_Auth_Adapter_Interface
         }
     }
 
+    /**
+     * Set entity name.
+     *
+     * @param  string
+     * @return LoSo_Zend_Auth_Adapter_Doctrine2
+     */
     public function setEntityName($entityName)
     {
         $this->entityName = $entityName;
         return $this;
     }
 
+    /**
+     * Set identity field.
+     *
+     * @param  string
+     * @return LoSo_Zend_Auth_Adapter_Doctrine2
+     */
     public function setIdentityField($identityField)
     {
         $this->identityField = $identityField;
         return $this;
     }
 
+    /**
+     * Set credential field.
+     *
+     * @param  string
+     * @return LoSo_Zend_Auth_Adapter_Doctrine2
+     */
     public function setCredentialField($credentialField)
     {
         $this->credentialField = $credentialField;
         return $this;
     }
 
+    /**
+     * Set the value to be used as identity.
+     *
+     * @param  string
+     * @return LoSo_Zend_Auth_Adapter_Doctrine2
+     */
     public function setIdentity($identity)
     {
         $this->identity = $identity;
         return $this;
     }
 
+    /**
+     * Set the value to be used as credential.
+     *
+     * @param  string
+     * @return LoSo_Zend_Auth_Adapter_Doctrine2
+     */
     public function setCredential($credential)
     {
         $this->credential = $credential;
         return $this;
     }
 
+    /**
+     * Defined by Zend_Auth_Adapter_Interface.  This method is called to
+     * attempt an authentication.  Previous to this call, this adapter would have already
+     * been configured with all necessary information to successfully connect to a database
+     * table and attempt to find a record matching the provided identity.
+     *
+     * @throws Zend_Auth_Adapter_Exception if answering the authentication query is impossible
+     * @return Zend_Auth_Result
+     */
     public function authenticate()
     {
         $this->_authenticateSetup();
@@ -97,7 +176,7 @@ class LoSo_Zend_Auth_Adapter_Doctrine2 implements Zend_Auth_Adapter_Interface
     }
 
     /**
-     * _authenticateSetup() - This method abstracts the steps involved with
+     * This method abstracts the steps involved with
      * making sure that this adapter was indeed setup properly with all
      * required pieces of information.
      *
@@ -123,11 +202,15 @@ class LoSo_Zend_Auth_Adapter_Doctrine2 implements Zend_Auth_Adapter_Interface
             /**
              * @see Zend_Auth_Adapter_Exception
              */
-            require_once 'Zend/Auth/Adapter/Exception.php';
             throw new Zend_Auth_Adapter_Exception($exception);
         }
     }
 
+    /**
+     * Construct the Doctrine query.
+     *
+     * @return Doctrine\ORM\Query
+     */
     protected function _getQuery()
     {
         $qb = $this->em->createQueryBuilder()

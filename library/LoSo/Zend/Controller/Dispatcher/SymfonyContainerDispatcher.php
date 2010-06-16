@@ -1,6 +1,26 @@
 <?php
+/**
+ * For dependency injection concerns, this class extends Zend_Controller_Dispatcher_Standard for
+ * letting the Symfony Dependency Injection Container manage controllers lifecycle and dependencies.
+ *
+ * @category   Zend
+ * @package    LoSo_Zend_Controller
+ * @subpackage Dispatcher
+ * @author     Loïc Frering <loic.frering@gmail.com>
+ */
 class LoSo_Zend_Controller_Dispatcher_SymfonyContainerDispatcher extends Zend_Controller_Dispatcher_Standard
 {
+    /**
+     * Dispatch to a controller/action.
+     *   - If the container is a Symfony Dependency Injection container, controller and his dependencies are loaded
+     *     by the container.
+     *   - If not the controller is instantiated as it would have been in the standard dispatcher.
+     *
+     * @param  Zend_Controller_Request_Abstract $request
+     * @param  Zend_Controller_Response_Abstract $response
+     * @throws Zend_Controller_Dispatcher_Exception
+     * @throws LoSo_Exception
+     */
     public function dispatch(Zend_Controller_Request_Abstract $request, Zend_Controller_Response_Abstract $response)
     {
         $this->setResponse($response);
@@ -29,8 +49,12 @@ class LoSo_Zend_Controller_Dispatcher_SymfonyContainerDispatcher extends Zend_Co
         $className = $this->loadClass($className);
 
         /**
-         * Instantiate controller with request, response, and invocation
+         * Retrieve or instantiate controller with request, response, and invocation
          * arguments; throw exception if it's not an action controller
+         */
+
+        /**
+         * Retrieve Symfony Dependency Injection container.
          */
         if(Zend_Registry::isRegistered(LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex())) {
             $container = Zend_Registry::get(LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex());
@@ -39,6 +63,10 @@ class LoSo_Zend_Controller_Dispatcher_SymfonyContainerDispatcher extends Zend_Co
         else {
             $container = null;
         }
+        /**
+         * If container is a Symfony Dependency Injection container, retrieve controller instance
+         * throught the container
+         */
         if(null !== $container && $container->hasService(lcfirst($controllerId))) {
             $container->setService('zend.controller.request', $request);
             $container->setService('zend.controller.response', $this->getResponse());
@@ -49,6 +77,9 @@ class LoSo_Zend_Controller_Dispatcher_SymfonyContainerDispatcher extends Zend_Co
             }
             $controller->init();
         }
+        /**
+         * Else instantiate controller
+         */
         else {
             $controller = new $className($request, $this->getResponse(), $this->getParams());
             if($controller instanceof LoSo_Zend_Controller_Action) {

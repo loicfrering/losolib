@@ -1,12 +1,56 @@
 <?php
+/**
+ * A scaffolding CLI tool build upon Zend_Tool_Framework.
+ *
+ * @category   Zend
+ * @package    LoSo_Zend_Tool
+ * @subpackage Provider
+ * @author     Loïc Frering <loic.frering@gmail.com>
+ */
 class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abstract implements Zend_Tool_Framework_Provider_Pretendable
 {
+    /**
+     * Name of the entity targeted by the scaffolding.
+     *
+     * @var string
+     */
     protected $entityName;
+
+    /**
+     * Current application namespace.
+     *
+     * @var string
+     */
     protected $appNamespace;
+
+    /**
+     * Module in which we want the files to be scaffolded.
+     *
+     * @var string
+     */
     protected $module;
+
+    /**
+     * Front controller instance.
+     *
+     * @var string
+     */
     protected $frontController;
+
+    /**
+     * Boostrap class.
+     *
+     * @var string
+     */
     protected $bootstrap;
 
+    /**
+     * Scaffold the controller.
+     *
+     * @param  string $entityName
+     * @param  string $module
+     * @param  bool   $forceOverwrite
+     */
     public function controller($entityName, $module = null, $forceOverwrite = false)
     {
         $this->_prepare($entityName, $module);
@@ -17,6 +61,13 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         $this->_write($controller, $this->_getControllerDirectory() . '/' . $entityName . 'Controller.php', $forceOverwrite);
     }
 
+    /**
+     * Scaffold the views.
+     *
+     * @param  string $entityName
+     * @param  string $module
+     * @param  bool   $forceOverwrite
+     */
     public function views($entityName, $module = null, $forceOverwrite = false)
     {
         $this->_prepare($entityName, $module);
@@ -43,6 +94,13 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         $this->_write($partial, $viewsDirectory . '/partial' . $this->_getEntityName() . '.phtml', $forceOverwrite);
     }
 
+    /**
+     * Scaffold the service.
+     *
+     * @param  string $entityName
+     * @param  string $module
+     * @param  bool   $forceOverwrite
+     */
     public function service($entityName, $module = null, $forceOverwrite = false)
     {
         $this->_prepare($entityName, $module);
@@ -53,6 +111,13 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         $this->_write($service, $this->_getModuleDirectory() . '/services/Doctrine/' . $entityName . 'Service.php', $forceOverwrite);
     }
 
+    /**
+     * Scaffold the DAO.
+     *
+     * @param  string $entityName
+     * @param  string $module
+     * @param  bool   $forceOverwrite
+     */
     public function dao($entityName, $module = null, $forceOverwrite = false)
     {
         $this->_prepare($entityName, $module);
@@ -64,6 +129,13 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
 
     }
 
+    /**
+     * Scaffold the form.
+     *
+     * @param  string $entityName
+     * @param  string $module
+     * @param  bool   $forceOverwrite
+     */
     public function form($entityName, $module = null, $forceOverwrite = false)
     {
         $this->_prepare($entityName, $module);
@@ -74,6 +146,13 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         $this->_write($form, $this->_getModuleDirectory() . '/forms/' . $entityName . '.php', $forceOverwrite);
     }
 
+    /**
+     * Scaffold the translation file.
+     *
+     * @param  string $entityName
+     * @param  string $module
+     * @param  bool   $forceOverwrite
+     */
     public function translation($entityName, $module = null, $forceOverwrite = false)
     {
         $this->_prepare($entityName, $module);
@@ -85,6 +164,13 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
 
     }
 
+    /**
+     * Scaffold all.
+     *
+     * @param  string $entityName
+     * @param  string $module
+     * @param  bool   $forceOverwrite
+     */
     public function all($entityName, $module = null, $forceOverwrite = false)
     {
         $this->_registry->getResponse()->appendContent('Scaffold all for ' . $entityName);
@@ -103,21 +189,41 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         $this->translation($entityName, $module, $forceOverwrite);
     }
 
+    /**
+     * Get entity name.
+     *
+     * @return string
+     */
     protected function _getEntityName()
     {
         return $this->entityName;
     }
 
+    /**
+     * Get entity var name to be used in templates.
+     *
+     * @return string
+     */
     protected function _getEntityVarName()
     {
         return lcfirst($this->entityName);
     }
 
+    /**
+     * Get entities var name to be used in templates.
+     *
+     * @return string
+     */
     protected function _getEntitiesVarName()
     {
         return $this->_getEntityVarName() . 's';
     }
 
+    /**
+     * Get module.
+     *
+     * @return string
+     */
     protected function _getModule()
     {
         if(null === $this->module) {
@@ -126,36 +232,73 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         return $this->module;
     }
     
+    /**
+     * Get module namespace.
+     *
+     * @return string
+     */
     protected function _getModuleNamespace()
     {
         return $this->_getModule() != $this->frontController->getDefaultModule() ? ucfirst($this->_getModule()) : $this->_getAppNamespace();
     }
 
+    /**
+     * Get controller namespace.
+     *
+     * @return string
+     */
     protected function _getControllerNamespace()
     {
         return $this->_getModule() != $this->frontController->getDefaultModule() ? ucfirst($this->_getModule()) . '_' : '';
     }
 
+    /**
+     * Get application namespace.
+     *
+     * @return string
+     */
     protected function _getAppNamespace()
     {
         return $this->appNamespace;
     }
 
+    /**
+     * Get module directory.
+     *
+     * @return string
+     */
     protected function _getModuleDirectory()
     {
         return $this->frontController->getModuleDirectory($this->_getModule());
     }
 
+    /**
+     * Get controller directory.
+     *
+     * @return string
+     */
     protected function _getControllerDirectory()
     {
         return $this->frontController->getControllerDirectory($this->_getModule());
     }
 
+    /**
+     * Get bootstrap class.
+     *
+     * @return Zend_Application_Bootstrap_Bootstrapper
+     */
     protected function _getBootstrap()
     {
         return $this->bootstrap;
     }
 
+    /**
+     * Write a scaffolded content to a file.
+     *
+     * @param  string $content
+     * @param  string $path
+     * @param  bool   $forceOverwrite
+     */
     protected function _write($content, $path, $forceOverwrite = false)
     {
         if ($this->_registry->getRequest()->isPretend()) {
@@ -204,6 +347,12 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         }
     }
 
+    /**
+     * Parse templates to replace keys by their value.
+     *
+     * @param  string
+     * @return string
+     */
     protected function _parse($string)
     {
         $fields = array(
@@ -225,6 +374,13 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         return $string;
     }
 
+    /**
+     * Preparation tasks before effective scaffolding.
+     * Execute application bootstrapping for necessary resources.
+     *
+     * @param  string $entityName
+     * @param  string $module
+     */
     protected function _prepare($entityName, $module = null)
     {
         $this->entityName = $entityName;
@@ -253,6 +409,11 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         $this->bootstrap = $application->getBootstrap();
     }
 
+    /**
+     * Get message identifiers for translation file.
+     *
+     * @return array
+     */
     protected function _getMessageIds()
     {
         $entity = $this->_getEntityName();

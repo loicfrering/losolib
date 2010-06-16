@@ -1,4 +1,12 @@
 <?php
+/**
+ * Front controller extended resource with LoSo dispatcher replacing standard dispatcher.
+ *
+ * @category   Zend
+ * @package    LoSo_Zend_Application
+ * @subpackage Resource
+ * @author     Loïc Frering <loic.frering@gmail.com>
+ */
 class LoSo_Zend_Application_Resource_Frontcontroller extends Zend_Application_Resource_Frontcontroller
 {
     /**

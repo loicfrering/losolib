@@ -1,11 +1,19 @@
 <?php
 /**
- * Description of Atos_Zend_Application_Resource_Navigation
+ * Extended navigation resource with support of an external configuration file.
  *
+ * @category   Zend
+ * @package    LoSo_Zend_Application
+ * @subpackage Resource
  * @author Loïc Frering <loic.frering@gmail.com>
  */
 class LoSo_Zend_Application_Resource_Navigation extends Zend_Application_Resource_Navigation
 {
+    /**
+     * Initialize navigation.
+     *
+     * @return Zend_Navigation
+     */
     public function init()
     {
         $options = $this->getOptions();
@@ -22,6 +30,11 @@ class LoSo_Zend_Application_Resource_Navigation extends Zend_Application_Resourc
         }
     }
 
+    /**
+     * Load a navigation configuration file.
+     *
+     * @param string Path to the configuration file
+     */
     protected function _loadConfig($file)
     {
         $suffix = strtolower(pathinfo($file, PATHINFO_EXTENSION));
