@@ -203,25 +203,15 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
     protected function _loadConfigFile($file)
     {
         $container = $this->getContainer();
-        $suffix = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $resolver = new \Symfony\Components\DependencyInjection\Loader\LoaderResolver(array(
+            new \Symfony\Components\DependencyInjection\Loader\XmlFileLoader($container),
+            new \Symfony\Components\DependencyInjection\Loader\YamlFileLoader($container),
+            new \Symfony\Components\DependencyInjection\Loader\IniFileLoader($container),
+            new \Symfony\Components\DependencyInjection\Loader\PhpFileLoader($container),
+        ));
 
-        switch ($suffix) {
-            case 'xml':
-                $loader = new \Symfony\Components\DependencyInjection\Loader\XmlFileLoader($container);
-                break;
-
-            case 'yml':
-                $loader = new \Symfony\Components\DependencyInjection\Loader\YamlFileLoader($container);
-                break;
-
-            case 'ini':
-                $loader = new \Symfony\Components\DependencyInjection\Loader\IniFileLoader($container);
-                break;
-
-            default:
-                throw new \LoSo\Symfony\Components\Exception("Invalid configuration file provided; unknown config type '$suffix'");
-        }
-        return $loader->load($file);
+        $loader = new \Symfony\Components\DependencyInjection\Loader\DelegatingLoader($resolver);
+        $loader->load($file);
     }
 
     /**
