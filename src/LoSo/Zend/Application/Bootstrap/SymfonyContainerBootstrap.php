@@ -73,7 +73,7 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
                 $this->_container = new $cacheName();
             }
             else {
-                $this->_container = new \Symfony\Components\DependencyInjection\Builder();
+                $this->_container = new \Symfony\Components\DependencyInjection\ContainerBuilder();
                 $this->_loadContainer();
                 if($this->_doCache() && !$this->_cacheExists()) {
                     $this->_cacheContainer();
@@ -148,22 +148,19 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         $sfContainerOptions = isset($options['container']['symfony']) ? $options['container']['symfony'] : array();
 
         $container = $this->getContainer();
-        $configuration = new \Symfony\Components\DependencyInjection\BuilderConfiguration();
 
         // Load configuration files
         if(isset($sfContainerOptions['configFiles'])) {
             foreach($sfContainerOptions['configFiles'] as $file) {
-                $configuration->merge($this->_loadConfigFile($file));
+                $this->_loadConfigFile($file);
             }
         }
         // Load configuration paths for annotated classes
         if(isset($sfContainerOptions['configPaths'])) {
             foreach($sfContainerOptions['configPaths'] as $path) {
-                $configuration->merge($this->_loadPath($path));
+                $this->_loadPath($path);
             }
         }
-
-        $container->merge($configuration);
     }
 
     /**
@@ -174,17 +171,14 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
     protected function _loadControllersInContainer()
     {
         $container = $this->getContainer();
-        $configuration = new \Symfony\Components\DependencyInjection\BuilderConfiguration();
 
         // Load controllers into service container
-        $loader = new \LoSo\Symfony\Components\DependencyInjection\Loader\ZendControllerLoader($this->getContainer());
+        $loader = new \LoSo\Symfony\Components\DependencyInjection\Loader\ZendControllerLoader($container);
         $front = $this->getResource('FrontController');
         $controllerDirectories = $front->getControllerDirectory();
         foreach ($controllerDirectories as $controllerDirectory) {
-            $configuration->merge($loader->load($controllerDirectory));
+            $loader->load($controllerDirectory);
         }
-
-        $container->merge($configuration);
     }
 
     /**
@@ -204,23 +198,24 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
      * Load a particular config file, XML, YAML or INI, into the service container.
      *
      * @param  string $file A configuration file
-     * @return Symfony\Components\DependencyInjection\BuilderConfiguration
+     * @return Symfony\Components\DependencyInjection\ContainerBuilder
      */
     protected function _loadConfigFile($file)
     {
+        $container = $this->getContainer();
         $suffix = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 
         switch ($suffix) {
             case 'xml':
-                $loader = new \Symfony\Components\DependencyInjection\Loader\XmlFileLoader();
+                $loader = new \Symfony\Components\DependencyInjection\Loader\XmlFileLoader($container);
                 break;
 
             case 'yml':
-                $loader = new \Symfony\Components\DependencyInjection\Loader\YamlFileLoader();
+                $loader = new \Symfony\Components\DependencyInjection\Loader\YamlFileLoader($container);
                 break;
 
             case 'ini':
-                $loader = new \Symfony\Components\DependencyInjection\Loader\IniFileLoader();
+                $loader = new \Symfony\Components\DependencyInjection\Loader\IniFileLoader($container);
                 break;
 
             default:
@@ -233,11 +228,12 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
      * Load classes in a particular path into the service container thanks to the annotation loader.
      *
      * @param  string $path A path with annotated classes
-     * @return Symfony\Components\DependencyInjection\BuilderConfiguration
+     * @return Symfony\Components\DependencyInjection\ContainerBuilder
      */
     protected function _loadPath($path)
     {
-        $loader = new \LoSo\Symfony\Components\DependencyInjection\Loader\AnnotationLoader();
+        $container = $this->getContainer();
+        $loader = new \LoSo\Symfony\Components\DependencyInjection\Loader\AnnotationLoader($container);
         return $loader->load($path);
     }
 

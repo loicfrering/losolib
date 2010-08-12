@@ -2,7 +2,7 @@
 
 namespace LoSo\Symfony\Components\DependencyInjection\Loader;
 
-use Symfony\Components\DependencyInjection\BuilderConfiguration;
+use Symfony\Components\DependencyInjection\ContainerBuilder;
 use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Reference;
 
@@ -13,13 +13,13 @@ use Symfony\Components\DependencyInjection\Reference;
  */
 class ZendControllerLoader extends AnnotationLoader
 {
-    public function  __construct()
+    public function  __construct(ContainerBuilder $container)
     {
-        parent::__construct();
+        parent::__construct($container);
         require_once __DIR__ . '/Annotation/Controller.php';
     }
 
-    protected function reflectDefinition(BuilderConfiguration $configuration, $reflClass)
+    protected function reflectDefinition($reflClass)
     {
         $definition = new Definition($reflClass->getName());
 
@@ -30,7 +30,7 @@ class ZendControllerLoader extends AnnotationLoader
             $this->reflectMethods($reflClass, $definition);
             $this->reflectConstructor($reflClass, $definition);
 
-            $configuration->setDefinition($id, $definition);
+            $this->container->setDefinition($id, $definition);
         }
     }
 

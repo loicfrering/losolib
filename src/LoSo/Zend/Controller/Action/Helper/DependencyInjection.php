@@ -25,10 +25,10 @@ class LoSo_Zend_Controller_Action_Helper_DependencyInjection extends Zend_Contro
      */
     public function direct($name)
     {
-        if($this->_container->hasService($name)) {
+        if($this->_container->has($name)) {
             return $this->_container->getService($name);
         }
-        else if($this->_container->hasParameter($name)) {
+        else if($this->_container->getParameterBag()->has($name)) {
             return $this->_container->getParameter($name);
         }
         return null;

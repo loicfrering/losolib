@@ -23,9 +23,9 @@ class DiController extends LoSo_Zend_Controller_Action
     public function indexAction()
     {
         $container = $this->getInvokeArg('bootstrap')->getContainer();
-        $testService = $container->testService;
+        $testService = $container->get('testService');
 
-        $this->view->parameters = $container->getParameters();
+        $this->view->parameters = $container->getParameterBag()->all();
         $this->view->serviceIds = $container->getServiceIds();
         $this->view->testServiceOut1 = $testService->test();
         $this->view->testServiceOut2 = $this->_testService->test2();

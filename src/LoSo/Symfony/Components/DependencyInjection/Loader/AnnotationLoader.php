@@ -3,7 +3,7 @@
 namespace LoSo\Symfony\Components\DependencyInjection\Loader;
 
 use Symfony\Components\DependencyInjection\Loader\Loader;
-use Symfony\Components\DependencyInjection\BuilderConfiguration;
+use Symfony\Components\DependencyInjection\ContainerBuilder;
 use Symfony\Components\DependencyInjection\Definition;
 use Doctrine\Common\Annotations\AnnotationReader;
 
@@ -17,8 +17,9 @@ class AnnotationLoader extends Loader
     protected $reader;
     protected $annotations = array();
 
-    public function  __construct()
+    public function  __construct(ContainerBuilder $container)
     {
+        parent::__construct($container);
         $this->annotations = array(
             'LoSo\Symfony\Components\DependencyInjection\Loader\Annotation\Inject',
             'LoSo\Symfony\Components\DependencyInjection\Loader\Annotation\Value'
@@ -33,8 +34,6 @@ class AnnotationLoader extends Loader
     
     public function load($path)
     {
-        $configuration = new BuilderConfiguration();
-
         try {
             $directoryIterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
             foreach($directoryIterator as $fileInfo) {
@@ -42,7 +41,7 @@ class AnnotationLoader extends Loader
                     $suffix = strtolower(pathinfo($fileInfo->getPathname(), PATHINFO_EXTENSION));
                     if($suffix == 'php') {
                         $reflClass = $this->getReflectionClassFromFile($fileInfo->getPathname());
-                        $this->reflectDefinition($configuration, $reflClass);
+                        $this->reflectDefinition($reflClass);
                     }
                 }
             }
@@ -50,8 +49,11 @@ class AnnotationLoader extends Loader
         catch(UnexpectedValueException $e) {
             
         }
+    }
 
-        return $configuration;
+    public function supports($resource)
+    {
+        return is_dir($resource);
     }
 
     protected function getReflectionClassFromFile($file)
@@ -61,7 +63,7 @@ class AnnotationLoader extends Loader
         return $reflFile->getClass();
     }
 
-    protected function reflectDefinition(BuilderConfiguration $configuration, $reflClass)
+    protected function reflectDefinition($reflClass)
     {
         $definition = new Definition($reflClass->getName());
 
@@ -73,7 +75,7 @@ class AnnotationLoader extends Loader
             $this->reflectMethods($reflClass, $definition);
             $this->reflectConstructor($reflClass, $definition);
 
-            $configuration->setDefinition($id, $definition);
+            $this->container->setDefinition($id, $definition);
         }
     }
 
