@@ -237,7 +237,7 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
      */
     protected function _loadPath($path)
     {
-        $loader = new \LoSo\Symfony\Components\DependencyInjection\Loader\AnnotationsLoader();
+        $loader = new \LoSo\Symfony\Components\DependencyInjection\Loader\AnnotationLoader();
         return $loader->load($path);
     }
 

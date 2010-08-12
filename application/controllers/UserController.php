@@ -1,6 +1,6 @@
 <?php
 /**
- * @Service
+ * @Controller
  */
 class UserController extends LoSo_Zend_Controller_Action
 {

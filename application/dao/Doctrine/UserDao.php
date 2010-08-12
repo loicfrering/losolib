@@ -1,6 +1,6 @@
 <?php
 /**
- * @Service userDao
+ * @Service
  */
 class Application_Dao_Doctrine_UserDao extends LoSo_Doctrine_ORM_Tools_Dao_GenericDao
 {

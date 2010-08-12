@@ -6,7 +6,7 @@ class Application_Service_Doctrine_UserService extends LoSo_Doctrine_ORM_Tools_S
 {
     /**
      * @var Application_Dao_User
-     * @Inject userDao
+     * @Inject("userDao")
      */
     protected $dao;
 

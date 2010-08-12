@@ -3,12 +3,13 @@
  * Description of DiController
  *
  * @author Loïc Frering <loic.frering@gmail.com>
- * @Service
+ * @Controller
  */
 class DiController extends LoSo_Zend_Controller_Action
 {
     /**
      * @var Application_Service_TestService
+     *
      * @Inject
      */
     private $_testService;
