@@ -1,0 +1,25 @@
+README
+======
+
+What is LoSoLib?
+----------------
+
+LoSoLib provides a collection of components for Zend Framework applications which allows to build solid multi-layered architectures.
+
+It particularly contains:
+
+* A Symfony Dependency Injection container integration
+* An annotation loader for Symfony Dependency Injection Container
+* A Doctrine 2 integration
+* Other useful components
+
+Requirements
+------------
+
+LoSoLib requires PHP 5.3 or later.
+
+License
+-------
+
+The files in this archive are released under the MIT license.
+You can find a copy of this license in the LICENSE file.
