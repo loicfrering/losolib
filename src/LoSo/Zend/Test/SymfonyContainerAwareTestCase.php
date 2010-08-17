@@ -27,9 +27,9 @@ class LoSo_Zend_Test_SymfonyContainerAwareTestCase extends LoSo_Zend_Test_TestCa
                     if(empty($serviceName)) {
                         $serviceName = $this->_formatServiceName($property->getName());
                     }
-                    if($container->hasService($serviceName)) {
+                    if($container->has($serviceName)) {
                         $property->setAccessible(true);
-                        $property->setValue($this, $container->getService($serviceName));
+                        $property->setValue($this, $container->get($serviceName));
                     }
                 }
             }
