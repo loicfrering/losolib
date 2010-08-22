@@ -149,16 +149,16 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
 
         $container = $this->getContainer();
 
-        // Load configuration files
-        if(isset($sfContainerOptions['configFiles'])) {
-            foreach($sfContainerOptions['configFiles'] as $file) {
-                $this->_loadConfigFile($file);
-            }
-        }
-        // Load configuration paths for annotated classes
+        // First: load configuration paths for annotated classes
         if(isset($sfContainerOptions['configPaths'])) {
             foreach($sfContainerOptions['configPaths'] as $path) {
                 $this->_loadPath($path);
+            }
+        }
+        // Then: load configuration files
+        if(isset($sfContainerOptions['configFiles'])) {
+            foreach($sfContainerOptions['configFiles'] as $file) {
+                $this->_loadConfigFile($file);
             }
         }
     }
