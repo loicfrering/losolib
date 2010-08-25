@@ -8,4 +8,7 @@ final class Service extends Annotation
 {
     public $name;
     public $shared = true;
+    public $factoryMethod;
+    public $factoryService;
+    public $tags = array();
 }

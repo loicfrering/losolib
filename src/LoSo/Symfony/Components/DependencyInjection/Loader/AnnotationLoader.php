@@ -69,7 +69,25 @@ class AnnotationLoader extends Loader
 
         if ($annot = $this->reader->getClassAnnotation($reflClass, 'LoSo\Symfony\Components\DependencyInjection\Loader\Annotation\Service')) {
             $id = $this->extractServiceName($reflClass, $annot);
-            $definition->setShared($annot->shared);
+
+            if (isset($annot->shared)) {
+                $definition->setShared($annot->shared);
+            }
+
+            if (isset($annot->factoryMethod)) {
+                $definition->setFactoryMethod($annot->factoryMethod);
+            }
+
+            if (isset($annot->factoryService)) {
+                $definition->setFactoryService($annot->factoryService);
+            }
+
+            foreach ($annot->tags as $tag) {
+                $name = $tag['name'];
+                unset($tag['name']);
+
+                $definition->addTag($name, $tag);
+            }
 
             $this->reflectProperties($reflClass, $definition);
             $this->reflectMethods($reflClass, $definition);
