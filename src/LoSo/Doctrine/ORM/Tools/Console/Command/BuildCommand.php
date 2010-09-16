@@ -2,9 +2,9 @@
 
 namespace LoSo\Doctrine\ORM\Tools\Console\Command;
 
-use Symfony\Components\Console\Input\InputArgument,
-    Symfony\Components\Console\Input\InputOption,
-    Symfony\Components\Console,
+use Symfony\Component\Console\Input\InputArgument,
+    Symfony\Component\Console\Input\InputOption,
+    Symfony\Component\Console,
     Doctrine\ORM\Tools\Console\MetadataFilter,
     Doctrine\ORM\Tools\Export\ClassMetadataExporter,
     Doctrine\ORM\Tools\EntityGenerator,
@@ -76,7 +76,7 @@ EOT
         $em = $this->getHelper('em')->getEntityManager();
 
         if(\Zend_Registry::isRegistered(\LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex())
-            && ($container = \Zend_Registry::get(\LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex())) instanceof \Symfony\Components\DependencyInjection\ContainerInterface) {
+            && ($container = \Zend_Registry::get(\LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex())) instanceof \Symfony\Component\DependencyInjection\ContainerInterface) {
             $mappingPaths = $container->getParameter('doctrine.orm.mapping_paths');
             $entitiesPaths = $container->getParameter('doctrine.orm.entities_paths');
         }

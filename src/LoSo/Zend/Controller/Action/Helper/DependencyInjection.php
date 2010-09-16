@@ -12,7 +12,7 @@ class LoSo_Zend_Controller_Action_Helper_DependencyInjection extends Zend_Contro
     /**
      * Symfony Dependency Injection container.
      *
-     * @var    \Symfony\Components\DependencyInjection\ContainerInterface
+     * @var    \Symfony\Component\DependencyInjection\ContainerInterface
      */
     protected $_container;
 
@@ -38,12 +38,12 @@ class LoSo_Zend_Controller_Action_Helper_DependencyInjection extends Zend_Contro
      * Retrieve Symfony Dependency Injection container.
      *
      * @throws LoSo_Exception if container is not a Symfony Depency Injection container
-     * @return \Symfony\Components\DependencyInjection\ContainerInterface
+     * @return \Symfony\Component\DependencyInjection\ContainerInterface
      */
     public function getContainer() {
         if (null === $this->_container) {
             $this->_container = Zend_Controller_Front::getInstance()->getParam('bootstrap')->getContainer();
-            if (!$this->_container instanceof \Symfony\Components\DependencyInjection\ContainerInterface) {
+            if (!$this->_container instanceof \Symfony\Component\DependencyInjection\ContainerInterface) {
                 throw new LoSo_Exception('You must use Symfony Dependency Injection container to use this helper.');
             }
         }
