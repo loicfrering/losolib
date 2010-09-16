@@ -19,7 +19,7 @@ class LoSo_Doctrine_ORM_Tools_Service_GenericService
     {
         foreach ($values as $key => $value) {
             $method = 'set' . ucfirst($key);
-            if(method_exists($entity, $method)) {
+            if(!is_array($value) && method_exists($entity, $method)) {
                 $entity->$method($value);
             }
         }
