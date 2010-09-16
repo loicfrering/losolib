@@ -73,7 +73,7 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
                 $this->_container = new $cacheName();
             }
             else {
-                $this->_container = new \LoSo\Symfony\Components\DependencyInjection\ContainerBuilder();
+                $this->_container = new \LoSo\Symfony\Component\DependencyInjection\ContainerBuilder();
                 $this->_loadContainer();
                 if($this->_doCache() && !$this->_cacheExists()) {
                     $this->_cacheContainer();
@@ -173,7 +173,7 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         $container = $this->getContainer();
 
         // Load controllers into service container
-        $loader = new \LoSo\Symfony\Components\DependencyInjection\Loader\ZendControllerLoader($container);
+        $loader = new \LoSo\Symfony\Component\DependencyInjection\Loader\ZendControllerLoader($container);
         $front = $this->getResource('FrontController');
         $controllerDirectories = $front->getControllerDirectory();
         foreach ($controllerDirectories as $controllerDirectory) {
@@ -190,7 +190,7 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
     {
         $cacheFile = $this->_getCacheFile();
         $cacheName = pathinfo($cacheFile, PATHINFO_FILENAME);
-        $dumper = new \Symfony\Components\DependencyInjection\Dumper\PhpDumper($this->getContainer());
+        $dumper = new \Symfony\Component\DependencyInjection\Dumper\PhpDumper($this->getContainer());
         file_put_contents($cacheFile, $dumper->dump(array('class' => $cacheName)));
     }
 
@@ -198,19 +198,19 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
      * Load a particular config file, XML, YAML or INI, into the service container.
      *
      * @param  string $file A configuration file
-     * @return Symfony\Components\DependencyInjection\ContainerBuilder
+     * @return Symfony\Component\DependencyInjection\ContainerBuilder
      */
     protected function _loadConfigFile($file)
     {
         $container = $this->getContainer();
-        $resolver = new \Symfony\Components\DependencyInjection\Loader\LoaderResolver(array(
-            new \Symfony\Components\DependencyInjection\Loader\XmlFileLoader($container),
-            new \Symfony\Components\DependencyInjection\Loader\YamlFileLoader($container),
-            new \Symfony\Components\DependencyInjection\Loader\IniFileLoader($container),
-            new \Symfony\Components\DependencyInjection\Loader\PhpFileLoader($container),
+        $resolver = new \Symfony\Component\DependencyInjection\Loader\LoaderResolver(array(
+            new \Symfony\Component\DependencyInjection\Loader\XmlFileLoader($container),
+            new \Symfony\Component\DependencyInjection\Loader\YamlFileLoader($container),
+            new \Symfony\Component\DependencyInjection\Loader\IniFileLoader($container),
+            new \Symfony\Component\DependencyInjection\Loader\PhpFileLoader($container),
         ));
 
-        $loader = new \Symfony\Components\DependencyInjection\Loader\DelegatingLoader($resolver);
+        $loader = new \Symfony\Component\DependencyInjection\Loader\DelegatingLoader($resolver);
         $loader->load($file);
     }
 
@@ -218,12 +218,12 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
      * Load classes in a particular path into the service container thanks to the annotation loader.
      *
      * @param  string $path A path with annotated classes
-     * @return Symfony\Components\DependencyInjection\ContainerBuilder
+     * @return Symfony\Component\DependencyInjection\ContainerBuilder
      */
     protected function _loadPath($path)
     {
         $container = $this->getContainer();
-        $loader = new \LoSo\Symfony\Components\DependencyInjection\Loader\AnnotationLoader($container);
+        $loader = new \LoSo\Symfony\Component\DependencyInjection\Loader\AnnotationLoader($container);
         return $loader->load($path);
     }
 
