@@ -35,14 +35,24 @@ class AnnotationLoader extends Loader
     public function load($path)
     {
         try {
+            $includedFiles = array();
             $directoryIterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
             foreach($directoryIterator as $fileInfo) {
                 if($fileInfo->isFile()) {
                     $suffix = strtolower(pathinfo($fileInfo->getPathname(), PATHINFO_EXTENSION));
                     if($suffix == 'php') {
-                        $reflClass = $this->getReflectionClassFromFile($fileInfo->getPathname());
-                        $this->reflectDefinition($reflClass);
+                        $sourceFile = realpath($fileInfo->getPathName());
+                        require_once $sourceFile;
+                        $includedFiles[] = $sourceFile;
                     }
+                }
+            }
+
+            $declaredClasses = get_declared_classes();
+            foreach($declaredClasses as $className) {
+                $reflClass = new \ReflectionClass($className);
+                if(in_array($reflClass->getFileName(), $includedFiles)) {
+                    $this->reflectDefinition($reflClass);
                 }
             }
         }
@@ -54,13 +64,6 @@ class AnnotationLoader extends Loader
     public function supports($resource)
     {
         return is_dir($resource);
-    }
-
-    protected function getReflectionClassFromFile($file)
-    {
-        require_once $file;
-        $reflFile = new \Zend_Reflection_File($file);
-        return $reflFile->getClass();
     }
 
     protected function reflectDefinition($reflClass)
@@ -99,7 +102,7 @@ class AnnotationLoader extends Loader
 
     protected function reflectProperties($reflClass, $definition)
     {
-        foreach ($reflClass->getProperties(-1, 'LoSo_Zend_Reflection_Property') as $property) {
+        foreach ($reflClass->getProperties() as $property) {
             foreach ($this->annotations as $annotClass) {
                 if ($annot = $this->reader->getPropertyAnnotation($property, $annotClass)) {
                     $annot->defineFromProperty($property, $definition);
@@ -141,7 +144,9 @@ class AnnotationLoader extends Loader
         
         if (null === $serviceName) {
             $className = $reflClass->getName();
-            if(false !== ($pos = strrpos($className, '_'))) {
+            if (false !== ($pos = strrpos($className, '_'))) {
+                $serviceName = lcfirst(substr($className, $pos + 1));
+            } else if (false !== ($pos = strrpos($className, '\\'))) {
                 $serviceName = lcfirst(substr($className, $pos + 1));
             } else {
                 $serviceName = lcfirst($className);
