@@ -1,6 +1,6 @@
 <?php
 /**
- * @Service
+ * @Controller
  */
 class Scaffold_PostController extends LoSo_Zend_Controller_Action
 {

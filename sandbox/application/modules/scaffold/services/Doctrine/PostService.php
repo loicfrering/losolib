@@ -6,7 +6,7 @@ class Scaffold_Service_Doctrine_PostService extends LoSo_Doctrine_ORM_Tools_Serv
 {
     /**
      * @var Scaffold_Dao_Doctrine_PostDao
-     * @Inject postDao
+     * @Inject("postDao")
      */
     protected $dao;
 }

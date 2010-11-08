@@ -9,7 +9,7 @@ $cli->addNamespace('LoSo')
     ->addTask('build', 'LoSo\Doctrine\ORM\Tools\Cli\Tasks\BuildTask');
 $cli->run($_SERVER['argv']);*/
 
-$cli = new \Symfony\Components\Console\Application('Doctrine Command Line Interface', Doctrine\Common\Version::VERSION);
+$cli = new \Symfony\Component\Console\Application('Doctrine Command Line Interface', Doctrine\Common\Version::VERSION);
 $cli->setCatchExceptions(true);
 $helperSet = $cli->getHelperSet();
 foreach ($helpers as $name => $helper) {
