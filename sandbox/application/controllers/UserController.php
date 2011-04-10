@@ -5,6 +5,17 @@
 class UserController extends LoSo_Zend_Controller_Action
 {
     /**
+     * @var Application_Repository_Doctrine_UserRepository
+     * @Inject
+     */
+    protected $userRepository;
+
+    public function setUserRepository($userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
+    /**
      * @var Application_Service_Doctrine_UserService
      * @Inject
      */
@@ -22,15 +33,15 @@ class UserController extends LoSo_Zend_Controller_Action
         if($this->getRequest()->isPost()) {
             if($userForm->isValid($_POST)) {
                 $user = new Application_Model_User();
-                $this->userService->populate($user, $userForm->getValues());
-                $this->userService->create($user);
-                $this->userService->flush();
+                $this->userRepository->populate($user, $userForm->getValues());
+                $this->userRepository->create($user);
+                $this->userRepository->flush();
 
                 $userForm->reset();
             }
         }
 
-        $this->view->users = $this->userService->findAll();
+        $this->view->users = $this->userRepository->findAll();
         $this->view->userForm = $userForm;
     }
 

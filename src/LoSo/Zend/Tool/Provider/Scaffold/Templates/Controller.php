@@ -1,18 +1,18 @@
 <?php
 /**
- * @Service
+ * @Controller
  */
 class {%controllerNamespace}{%entity}Controller extends LoSo_Zend_Controller_Action
 {
     /**
-     * @var {%moduleNamespace}_Service_Doctrine_{%entity}Service
+     * @var {%moduleNamespace}_Repository_Doctrine_{%entity}Repository
      * @Inject
      */
-    protected ${%entityVar}Service;
+    protected ${%entityVar}Repository;
 
-    public function set{%entity}Service(${%entityVar}Service)
+    public function set{%entity}Repository(${%entityVar}Repository)
     {
-        $this->{%entityVar}Service = ${%entityVar}Service;
+        $this->{%entityVar}Repository = ${%entityVar}Repository;
         return $this;
     }
 
@@ -30,7 +30,7 @@ class {%controllerNamespace}{%entity}Controller extends LoSo_Zend_Controller_Act
 
     public function listAction()
     {
-        ${%entitiesVar} = $this->{%entityVar}Service->findAll();
+        ${%entitiesVar} = $this->{%entityVar}Repository->findAll();
         $this->view->{%entitiesVar} = ${%entitiesVar};
     }
 
@@ -69,9 +69,9 @@ class {%controllerNamespace}{%entity}Controller extends LoSo_Zend_Controller_Act
         if($this->getRequest()->isPost()) {
             if(${%entityVar}Form->isValid($_POST)) {
                 ${%entityVar} = new {%moduleNamespace}_Model_{%entity}();
-                $this->{%entityVar}Service->populate(${%entityVar}, ${%entityVar}Form->getValues());
-                $this->{%entityVar}Service->create(${%entityVar});
-                $this->{%entityVar}Service->flush();
+                $this->{%entityVar}Repository->populate(${%entityVar}, ${%entityVar}Form->getValues());
+                $this->{%entityVar}Repository->create(${%entityVar});
+                $this->{%entityVar}Repository->flush();
 
                 $this->_helper->flashMessenger($this->view->translate('{%module.entity.action.create.success}'));
                 return $this->_helper->redirector('show', null, null, array('id' => ${%entityVar}->getId()));
@@ -90,9 +90,9 @@ class {%controllerNamespace}{%entity}Controller extends LoSo_Zend_Controller_Act
         ${%entityVar}Form = new {%moduleNamespace}_Form_{%entity}();
         if($this->getRequest()->isPost()) {
             if(${%entityVar}Form->isValid($_POST)) {
-                $this->{%entityVar}Service->populate(${%entityVar}, ${%entityVar}Form->getValues());
-                $this->{%entityVar}Service->update(${%entityVar});
-                $this->{%entityVar}Service->flush();
+                $this->{%entityVar}Repository->populate(${%entityVar}, ${%entityVar}Form->getValues());
+                $this->{%entityVar}Repository->update(${%entityVar});
+                $this->{%entityVar}Repository->flush();
 
                 $this->_helper->flashMessenger($this->view->translate('{%module.entity.action.update.success}'));
                 return $this->_helper->redirector('show', null, null, array('id' => ${%entityVar}->getId()));
@@ -110,8 +110,8 @@ class {%controllerNamespace}{%entity}Controller extends LoSo_Zend_Controller_Act
     {
         ${%entityVar} = $this->_find{%entity}($this->_getParam('id'));
         if($this->getRequest()->isPost()) {
-            $this->{%entityVar}Service->delete(${%entityVar});
-            $this->{%entityVar}Service->flush();
+            $this->{%entityVar}Repository->delete(${%entityVar});
+            $this->{%entityVar}Repository->flush();
 
             $this->_helper->flashMessenger($this->view->translate('{%module.entity.action.destroy.success}'));
             return $this->_helper->redirector('list');
@@ -121,7 +121,7 @@ class {%controllerNamespace}{%entity}Controller extends LoSo_Zend_Controller_Act
 
     protected function _find{%entity}($id)
     {
-        ${%entityVar} = $this->{%entityVar}Service->find($id);
+        ${%entityVar} = $this->{%entityVar}Repository->find($id);
         if(null === ${%entityVar}) {
             $this->_helper->flashMessenger($this->view->translate('{%module.entity.notfound.id}', $id));
             return $this->_helper->redirector('list');

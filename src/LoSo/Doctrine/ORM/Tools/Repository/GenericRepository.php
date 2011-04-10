@@ -1,10 +1,10 @@
 <?php
-abstract class LoSo_Doctrine_ORM_Tools_Dao_GenericDao extends \Doctrine\ORM\EntityRepository
+abstract class LoSo_Doctrine_ORM_Tools_Repository_GenericRepository extends \Doctrine\ORM\EntityRepository
 {
     public function __construct()
     {
         if(empty($this->entityName)) {
-            throw new LoSo_Exception('EntityName must be defined when extending LoSo GenericDao.');
+            throw new LoSo_Exception('EntityName must be defined when extending LoSo GenericRepository.');
         }
         $em = Zend_Registry::get(LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex())->em;
         $metadata = $em->getClassMetadata($this->entityName);
@@ -14,6 +14,16 @@ abstract class LoSo_Doctrine_ORM_Tools_Dao_GenericDao extends \Doctrine\ORM\Enti
     public function getEntityName()
     {
         return $this->entityName;
+    }
+
+    public function populate($entity, array $values)
+    {
+        foreach ($values as $key => $value) {
+            $method = 'set' . ucfirst($key);
+            if(!is_array($value) && method_exists($entity, $method)) {
+                $entity->$method($value);
+            }
+        }
     }
 
     public function create($entity)

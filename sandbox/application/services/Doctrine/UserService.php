@@ -2,17 +2,23 @@
 /**
  * @Service
  */
-class Application_Service_Doctrine_UserService extends LoSo_Doctrine_ORM_Tools_Service_GenericService
+class Application_Service_Doctrine_UserService
 {
     /**
-     * @var Application_Dao_User
-     * @Inject("userDao")
+     * @var Application_Repository_Doctrine_UserRepository
+     * @Inject
      */
-    protected $dao;
+    protected $userRepository;
+
+    public function setUserRepository($userRepository)
+    {
+        $this->userRepository = $userRepository;
+        return $this;
+    }
 
     public function sayHello($id)
     {
-        $user = $this->find($id);
+        $user = $this->userRepository->find($id);
         if($user) {
             return 'Hello ' . $user->getFirstname() . ' ' . $user->getLastname() . '!';
         }

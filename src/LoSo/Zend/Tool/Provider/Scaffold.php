@@ -95,37 +95,20 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
     }
 
     /**
-     * Scaffold the service.
+     * Scaffold the Repository.
      *
      * @param  string $entityName
      * @param  string $module
      * @param  bool   $forceOverwrite
      */
-    public function service($entityName, $module = null, $forceOverwrite = false)
+    public function repository($entityName, $module = null, $forceOverwrite = false)
     {
         $this->_prepare($entityName, $module);
-        $this->_registry->getResponse()->appendContent('Scaffold service for ' . $entityName);
+        $this->_registry->getResponse()->appendContent('Scaffold repository for ' . $entityName);
 
-        $serviceScaffold = new LoSo_Zend_Tool_Provider_Scaffold_Service($this->_getEntityName(), $this->_getModule(), $this->_getModuleNamespace());
-        $service = $this->_parse($serviceScaffold->scaffold());
-        $this->_write($service, $this->_getModuleDirectory() . '/services/Doctrine/' . $entityName . 'Service.php', $forceOverwrite);
-    }
-
-    /**
-     * Scaffold the DAO.
-     *
-     * @param  string $entityName
-     * @param  string $module
-     * @param  bool   $forceOverwrite
-     */
-    public function dao($entityName, $module = null, $forceOverwrite = false)
-    {
-        $this->_prepare($entityName, $module);
-        $this->_registry->getResponse()->appendContent('Scaffold dao for ' . $entityName);
-
-        $daoScaffold = new LoSo_Zend_Tool_Provider_Scaffold_Dao($this->_getEntityName(), $this->_getModule(), $this->_getModuleNamespace());
-        $dao = $this->_parse($daoScaffold->scaffold());
-        $this->_write($dao, $this->_getModuleDirectory() . '/dao/Doctrine/' . $entityName . 'Dao.php', $forceOverwrite);
+        $repositoryScaffold = new LoSo_Zend_Tool_Provider_Scaffold_Repository($this->_getEntityName(), $this->_getModule(), $this->_getModuleNamespace());
+        $repository = $this->_parse($repositoryScaffold->scaffold());
+        $this->_write($repository, $this->_getModuleDirectory() . '/repository/Doctrine/' . $entityName . 'Repository.php', $forceOverwrite);
 
     }
 
@@ -176,9 +159,7 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
         $this->_registry->getResponse()->appendContent('Scaffold all for ' . $entityName);
         $this->_registry->getResponse()->appendContent('');
 
-        $this->dao($entityName, $module, $forceOverwrite);
-        $this->_registry->getResponse()->appendContent('');
-        $this->service($entityName, $module, $forceOverwrite);
+        $this->repository($entityName, $module, $forceOverwrite);
         $this->_registry->getResponse()->appendContent('');
         $this->form($entityName, $module, $forceOverwrite);
         $this->_registry->getResponse()->appendContent('');
