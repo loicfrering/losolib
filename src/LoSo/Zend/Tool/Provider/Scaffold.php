@@ -108,7 +108,7 @@ class LoSo_Zend_Tool_Provider_Scaffold extends Zend_Tool_Framework_Provider_Abst
 
         $repositoryScaffold = new LoSo_Zend_Tool_Provider_Scaffold_Repository($this->_getEntityName(), $this->_getModule(), $this->_getModuleNamespace());
         $repository = $this->_parse($repositoryScaffold->scaffold());
-        $this->_write($repository, $this->_getModuleDirectory() . '/repository/Doctrine/' . $entityName . 'Repository.php', $forceOverwrite);
+        $this->_write($repository, $this->_getModuleDirectory() . '/repositories/Doctrine/' . $entityName . 'Repository.php', $forceOverwrite);
 
     }
 

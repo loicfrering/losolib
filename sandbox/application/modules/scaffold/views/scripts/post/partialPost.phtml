@@ -1,8 +1,8 @@
 <dl>
     <dt><?= $this->translate('Title') ?></dt>
-    <dd><?= $this->entity->getTitle() ?></dd>
+    <dd><?= $this->escape($this->entity->getTitle()) ?></dd>
     <dt><?= $this->translate('Body') ?></dt>
-    <dd><?= $this->entity->getBody() ?></dd>
+    <dd><?= $this->escape($this->entity->getBody()) ?></dd>
 </dl>
 <p>
     <a href="<?= $this->url(array('action' => 'show', 'id' => $this->entity->getId())) ?>" title="<?= $this->translate('Show Post') ?>"><?= $this->translate('Show Post') ?></a>

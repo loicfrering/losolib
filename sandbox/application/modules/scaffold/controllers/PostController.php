@@ -5,14 +5,14 @@
 class Scaffold_PostController extends LoSo_Zend_Controller_Action
 {
     /**
-     * @var Scaffold_Service_Doctrine_PostService
+     * @var Scaffold_Repository_Doctrine_PostRepository
      * @Inject
      */
-    protected $postService;
+    protected $postRepository;
 
-    public function setPostService($postService)
+    public function setPostRepository($postRepository)
     {
-        $this->postService = $postService;
+        $this->postRepository = $postRepository;
         return $this;
     }
 
@@ -30,7 +30,7 @@ class Scaffold_PostController extends LoSo_Zend_Controller_Action
 
     public function listAction()
     {
-        $posts = $this->postService->findAll();
+        $posts = $this->postRepository->findAll();
         $this->view->posts = $posts;
     }
 
@@ -69,9 +69,9 @@ class Scaffold_PostController extends LoSo_Zend_Controller_Action
         if($this->getRequest()->isPost()) {
             if($postForm->isValid($_POST)) {
                 $post = new Scaffold_Model_Post();
-                $this->postService->populate($post, $postForm->getValues());
-                $this->postService->create($post);
-                $this->postService->flush();
+                $this->postRepository->populate($post, $postForm->getValues());
+                $this->postRepository->create($post);
+                $this->postRepository->flush();
 
                 $this->_helper->flashMessenger($this->view->translate('Post successfully created.'));
                 return $this->_helper->redirector('show', null, null, array('id' => $post->getId()));
@@ -90,9 +90,9 @@ class Scaffold_PostController extends LoSo_Zend_Controller_Action
         $postForm = new Scaffold_Form_Post();
         if($this->getRequest()->isPost()) {
             if($postForm->isValid($_POST)) {
-                $this->postService->populate($post, $postForm->getValues());
-                $this->postService->update($post);
-                $this->postService->flush();
+                $this->postRepository->populate($post, $postForm->getValues());
+                $this->postRepository->update($post);
+                $this->postRepository->flush();
 
                 $this->_helper->flashMessenger($this->view->translate('Post successfully updated.'));
                 return $this->_helper->redirector('show', null, null, array('id' => $post->getId()));
@@ -110,8 +110,8 @@ class Scaffold_PostController extends LoSo_Zend_Controller_Action
     {
         $post = $this->_findPost($this->_getParam('id'));
         if($this->getRequest()->isPost()) {
-            $this->postService->delete($post);
-            $this->postService->flush();
+            $this->postRepository->delete($post);
+            $this->postRepository->flush();
 
             $this->_helper->flashMessenger($this->view->translate('Post successfully deleted.'));
             return $this->_helper->redirector('list');
@@ -121,9 +121,9 @@ class Scaffold_PostController extends LoSo_Zend_Controller_Action
 
     protected function _findPost($id)
     {
-        $post = $this->postService->find($this->_getParam('id'));
+        $post = $this->postRepository->find($id);
         if(null === $post) {
-            $this->_helper->flashMessenger($this->view->translate('Post with id %s not found.', $this->_getParam('id')));
+            $this->_helper->flashMessenger($this->view->translate('Post with id %s not found.', $id));
             return $this->_helper->redirector('list');
         }
         return $post;
