@@ -8,7 +8,7 @@
  * @subpackage Test
  * @author     Loïc Frering <loic.frering@gmail.com>
  */
-class LoSo_Zend_Test_TestCase extends PHPUnit_Framework_TestCase
+abstract class LoSo_Zend_Test_TestCase extends PHPUnit_Framework_TestCase
 {
     /**
      * Zend_Application instance.

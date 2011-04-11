@@ -7,7 +7,7 @@
  * @subpackage Test
  * @author     Loïc Frering <loic.frering@gmail.com>
  */
-class LoSo_Zend_Test_SymfonyContainerAwareTestCase extends LoSo_Zend_Test_TestCase
+abstract class LoSo_Zend_Test_SymfonyContainerAwareTestCase extends LoSo_Zend_Test_TestCase
 {
     /**
      * Check for dependencies and inject them if needed.
