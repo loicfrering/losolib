@@ -1,9 +1,11 @@
 <?php
+use LoSo\LosoBundle\DependencyInjection\Annotations as DI;
+
 /**
  * Description of Application_Service_TestService2
  *
  * @author Loïc Frering <loic.frering@gmail.com>
- * @Service
+ * @DI\Service
  */
 class Application_Service_TestService2
 {

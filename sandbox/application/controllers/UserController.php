@@ -1,12 +1,14 @@
 <?php
+use LoSo\LosoBundle\DependencyInjection\Annotations as DI;
+
 /**
- * @Controller
+ * @DI\Controller
  */
 class UserController extends LoSo_Zend_Controller_Action
 {
     /**
      * @var Application_Repository_Doctrine_UserRepository
-     * @Inject
+     * @DI\Inject
      */
     protected $userRepository;
 
@@ -17,7 +19,7 @@ class UserController extends LoSo_Zend_Controller_Action
 
     /**
      * @var Application_Service_Doctrine_UserService
-     * @Inject
+     * @DI\Inject
      */
     protected $userService;
 

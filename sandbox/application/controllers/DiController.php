@@ -1,16 +1,18 @@
 <?php
+use LoSo\LosoBundle\DependencyInjection\Annotations as DI;
+
 /**
  * Description of DiController
  *
  * @author Loïc Frering <loic.frering@gmail.com>
- * @Controller
+ * @DI\Controller
  */
 class DiController extends LoSo_Zend_Controller_Action
 {
     /**
      * @var Application_Service_TestService
      *
-     * @Inject
+     * @DI\Inject
      */
     private $_testService;
 

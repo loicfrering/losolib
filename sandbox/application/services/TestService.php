@@ -1,9 +1,11 @@
 <?php
+use LoSo\LosoBundle\DependencyInjection\Annotations as DI;
+
 /**
  * Description of Application_Service_TestService
  *
  * @author Loïc Frering <loic.frering@gmail.com>
- * @Service
+ * @DI\Service
  */
 class Application_Service_TestService
 {
@@ -20,7 +22,7 @@ class Application_Service_TestService
     /**
      * @param string $foo
      * @return Default_Service_TestService
-     * @Value
+     * @DI\Inject("%foo%")
      */
     public function setFoo($foo)
     {
@@ -31,7 +33,7 @@ class Application_Service_TestService
     /**
      * @param Default_Service_TestService2 $testService2
      * @return Default_Service_TestService
-     * @Inject
+     * @DI\Inject
      */
     public function setTestService2($testService2)
     {

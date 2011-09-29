@@ -1,12 +1,14 @@
 <?php
+use LoSo\LosoBundle\DependencyInjection\Annotations as DI;
+
 /**
- * @Controller
+ * @DI\Controller
  */
 class Scaffold_PostController extends LoSo_Zend_Controller_Action
 {
     /**
      * @var Scaffold_Repository_Doctrine_PostRepository
-     * @Inject
+     * @DI\Inject
      */
     protected $postRepository;
 
