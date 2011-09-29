@@ -1,9 +1,10 @@
 <?php
 
-namespace LoSo\Symfony\Component\DependencyInjection\Loader\Annotation;
+namespace LoSo\LosoBundle\DependencyInjection\Annotations;
 
 use Doctrine\Common\Annotations\Annotation;
 
 final class Controller extends Annotation
 {
+    public $name;
 }
