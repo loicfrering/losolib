@@ -150,16 +150,9 @@ class LoSo_Zend_Application_Resource_Doctrine2 extends Zend_Application_Resource
     protected function _initParameters()
     {
         $options = $this->getOptions();
-        $container = $this->getBootstrap()->getApplication()->getBootstrap()->getContainer();
-        if($container instanceof \Symfony\Component\DependencyInjection\ContainerInterface) {
-            $container->setParameter('doctrine.orm.mapping_paths', $options['metadata']['mappingPaths']);
-            $container->setParameter('doctrine.orm.entities_paths', $options['metadata']['entitiesPaths']);
-        }
-        else {
-            Zend_Registry::set('doctrine.config', array(
-                'doctrine.orm.mapping_paths' => $options['metadata']['mappingPaths'],
-                'doctrine.orm.entities_paths' => $options['metadata']['entitiesPaths']
-            ));
-        }
+        Zend_Registry::set('doctrine.config', array(
+            'doctrine.orm.mapping_paths' => $options['metadata']['mappingPaths'],
+            'doctrine.orm.entities_paths' => $options['metadata']['entitiesPaths']
+        ));
     }
 }

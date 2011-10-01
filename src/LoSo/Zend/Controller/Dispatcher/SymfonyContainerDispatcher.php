@@ -58,7 +58,7 @@ class LoSo_Zend_Controller_Dispatcher_SymfonyContainerDispatcher extends Zend_Co
          */
         if(Zend_Registry::isRegistered(LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex())) {
             $container = Zend_Registry::get(LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap::getRegistryIndex());
-            $controllerId = 'zend.controller.' . $className;
+            $controllerId = lcfirst($className);
         }
         else {
             $container = null;
@@ -68,9 +68,6 @@ class LoSo_Zend_Controller_Dispatcher_SymfonyContainerDispatcher extends Zend_Co
          * throught the container
          */
         if(null !== $container && $container->has(lcfirst($controllerId))) {
-            $container->set('zend.controller.request', $request);
-            $container->set('zend.controller.response', $this->getResponse());
-            $container->set('zend.controller.params', $this->getParams());
             $controller = $container->get($controllerId);
             if(!$controller instanceof LoSo_Zend_Controller_Action) {
                 throw new LoSo_Exception('Controller from Symfony Container "' . $className . '" is not an instance of LoSo_Zend_Controller_Action');

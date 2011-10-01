@@ -5,7 +5,7 @@ class Bootstrap extends LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstra
     protected function _initResourceLoader()
     {
         $resourceLoader = $this->getResourceLoader();
-        $resourceLoader->addResourceType('dao', 'dao', 'Dao');
+        $resourceLoader->addResourceType('repository', 'repositories', 'Repository');
     }
 }
 

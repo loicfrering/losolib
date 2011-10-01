@@ -1,4 +1,17 @@
 <?php
+use Doctrine\Common\Annotations\AnnotationRegistry;
+use LoSo\LosoBundle\DependencyInjection\Compiler\RepositoryDefinitionPass;
+use LoSo\LosoBundle\DependencyInjection\Loader\AnnotationLoader;
+use LoSo\Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
+use Symfony\Component\DependencyInjection\Loader\IniFileLoader;
+use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Config\Loader\DelegatingLoader;
+use Symfony\Component\Config\Loader\LoaderResolver;
+
 /**
  * Extension of the default bootstrap class with Symfony Dependency Injection container integration instead
  * of the default registry container.
@@ -45,15 +58,42 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
      */
     public function run()
     {
+        $front = $this->getResource('FrontController');
+        $default = $front->getDefaultModule();
+        if (null === $front->getControllerDirectory($default)) {
+            throw new Zend_Application_Bootstrap_Exception(
+                'No default controller directory registered with front controller'
+            );
+        }
+
+        $front->setParam('bootstrap', $this);
+
+
         // Load service container if not cached or if we want to cache and cache doesn't esist
         if(!$this->_doCache() || ($this->_doCache() && !$this->_cacheExists())) {
-            $this->_loadControllersInContainer();
+            $this->_loadControllers();
+            $repositoryDefinitionPass = new RepositoryDefinitionPass();
+            $repositoryDefinitionPass->process($this->getContainer());
         }
         // Cache loaded service container if we want to cache and cache doesn't already exist
         if($this->_doCache() && !$this->_cacheExists()) {
             $this->_cacheContainer();
         }
-        parent::run();
+
+        $this->_loadHttpContext();
+        $container = $this->getContainer();
+        if (isset($container->doctrine2)) {
+            $container->set('doctrine.orm.entity_manager', $container->doctrine2);
+        }
+
+        $request = $container->get('zend.controller.request');
+        $response = $container->get('zend.controller.response');
+
+
+        $response = $front->dispatch($request, $response);
+        if ($front->returnResponse()) {
+            return $response;
+        }
     }
 
     /**
@@ -66,6 +106,7 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         $options = $this->getOption('bootstrap');
 
         if(null === $this->_container && $options['container']['type'] == 'symfony') {
+            $this->_autoloadAnnotations();
             if ($this->_doCache() && $this->_cacheExists()) {
                 $cacheFile = $this->_getCacheFile();
                 $cacheName = pathinfo($cacheFile, PATHINFO_FILENAME);
@@ -73,7 +114,7 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
                 $this->_container = new $cacheName();
             }
             else {
-                $this->_container = new \LoSo\Symfony\Component\DependencyInjection\ContainerBuilder();
+                $this->_container = new ContainerBuilder();
                 $this->_loadContainer();
                 if($this->_doCache() && !$this->_cacheExists()) {
                     $this->_cacheContainer();
@@ -84,6 +125,14 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
             Zend_Controller_Action_HelperBroker::addHelper(new LoSo_Zend_Controller_Action_Helper_DependencyInjection());
         }
         return parent::getContainer();
+    }
+
+    /**
+     * Autoload annotations through Doctrine Common's AnnotationRegistry.
+     */
+    protected function _autoloadAnnotations()
+    {
+        AnnotationRegistry::registerAutoloadNamespace('LoSo\LosoBundle\DependencyInjection\Annotations');
     }
 
     /**
@@ -168,17 +217,33 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
      *
      * @return void
      */
-    protected function _loadControllersInContainer()
+    protected function _loadControllers()
     {
         $container = $this->getContainer();
 
         // Load controllers into service container
-        $loader = new \LoSo\Symfony\Component\DependencyInjection\Loader\ZendControllerLoader($container);
+        $loader = new AnnotationLoader($container);
         $front = $this->getResource('FrontController');
         $controllerDirectories = $front->getControllerDirectory();
         foreach ($controllerDirectories as $controllerDirectory) {
             $loader->load($controllerDirectory);
         }
+    }
+
+    /**
+     * Load HTTP context into the service container.
+     *
+     * @return void
+     */
+    protected function _loadHttpContext()
+    {
+        $container = $this->getContainer();
+        $request = new Zend_Controller_Request_Http();
+        $response = new Zend_Controller_Response_Http();
+        $params = array('bootstrap' => $this);
+        $container->set('zend.controller.request', $request);
+        $container->set('zend.controller.response', $response);
+        $container->set('zend.controller.params', $params);
     }
 
     /**
@@ -190,7 +255,7 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
     {
         $cacheFile = $this->_getCacheFile();
         $cacheName = pathinfo($cacheFile, PATHINFO_FILENAME);
-        $dumper = new \Symfony\Component\DependencyInjection\Dumper\PhpDumper($this->getContainer());
+        $dumper = new PhpDumper($this->getContainer());
         file_put_contents($cacheFile, $dumper->dump(array('class' => $cacheName)));
     }
 
@@ -198,19 +263,20 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
      * Load a particular config file, XML, YAML or INI, into the service container.
      *
      * @param  string $file A configuration file
-     * @return Symfony\Component\DependencyInjection\ContainerBuilder
+     * @return ContainerBuilder
      */
     protected function _loadConfigFile($file)
     {
         $container = $this->getContainer();
-        $resolver = new \Symfony\Component\DependencyInjection\Loader\LoaderResolver(array(
-            new \Symfony\Component\DependencyInjection\Loader\XmlFileLoader($container),
-            new \Symfony\Component\DependencyInjection\Loader\YamlFileLoader($container),
-            new \Symfony\Component\DependencyInjection\Loader\IniFileLoader($container),
-            new \Symfony\Component\DependencyInjection\Loader\PhpFileLoader($container),
+        $locator = new FileLocator($this);
+        $resolver = new LoaderResolver(array(
+            new XmlFileLoader($container, $locator),
+            new YamlFileLoader($container, $locator),
+            new IniFileLoader($container, $locator),
+            new PhpFileLoader($container, $locator),
         ));
 
-        $loader = new \Symfony\Component\DependencyInjection\Loader\DelegatingLoader($resolver);
+        $loader = new DelegatingLoader($resolver);
         $loader->load($file);
     }
 
@@ -218,12 +284,12 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
      * Load classes in a particular path into the service container thanks to the annotation loader.
      *
      * @param  string $path A path with annotated classes
-     * @return Symfony\Component\DependencyInjection\ContainerBuilder
+     * @return ContainerBuilder
      */
     protected function _loadPath($path)
     {
         $container = $this->getContainer();
-        $loader = new \LoSo\Symfony\Component\DependencyInjection\Loader\AnnotationLoader($container);
+        $loader = new AnnotationLoader($container);
         return $loader->load($path);
     }
 

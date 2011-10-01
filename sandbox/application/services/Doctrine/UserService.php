@@ -1,12 +1,14 @@
 <?php
+use LoSo\LosoBundle\DependencyInjection\Annotations as DI;
+
 /**
- * @Service
+ * @DI\Service
  */
 class Application_Service_Doctrine_UserService
 {
     /**
      * @var Application_Repository_Doctrine_UserRepository
-     * @Inject
+     * @DI\Inject
      */
     protected $userRepository;
 
