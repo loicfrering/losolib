@@ -38,27 +38,27 @@ class BuildCommand extends Console\Command\Command
         ->setDescription('Build task for easily re-building your Doctrine development environment.')
         ->setDefinition(array(
             new InputOption(
-                'generate-annotations', null, InputOption::PARAMETER_OPTIONAL,
+                'generate-annotations', null, InputOption::VALUE_OPTIONAL,
                 'Flag to define if generator should generate annotation metadata on entities.', false
             ),
             new InputOption(
-                'generate-methods', null, InputOption::PARAMETER_OPTIONAL,
+                'generate-methods', null, InputOption::VALUE_OPTIONAL,
                 'Flag to define if generator should generate stub methods on entities.', true
             ),
             new InputOption(
-                'regenerate-entities', null, InputOption::PARAMETER_OPTIONAL,
+                'regenerate-entities', null, InputOption::VALUE_OPTIONAL,
                 'Flag to define if generator should regenerate entity if it exists.', false
             ),
             new InputOption(
-                'update-entities', null, InputOption::PARAMETER_OPTIONAL,
+                'update-entities', null, InputOption::VALUE_OPTIONAL,
                 'Flag to define if generator should only update entity if it exists.', true
             ),
             new InputOption(
-                'extend', null, InputOption::PARAMETER_OPTIONAL,
+                'extend', null, InputOption::VALUE_OPTIONAL,
                 'Defines a base class to be extended by generated entity classes.'
             ),
             new InputOption(
-                'num-spaces', null, InputOption::PARAMETER_OPTIONAL,
+                'num-spaces', null, InputOption::VALUE_OPTIONAL,
                 'Defines the number of indentation spaces', 4
             )
         ))
