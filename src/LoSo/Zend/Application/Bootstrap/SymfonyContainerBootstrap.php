@@ -1,5 +1,6 @@
 <?php
 use Doctrine\Common\Annotations\AnnotationRegistry;
+use LoSo\LosoBundle\DependencyInjection\Compiler\RepositoryDefinitionPass;
 use LoSo\LosoBundle\DependencyInjection\Loader\AnnotationLoader;
 use LoSo\Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
@@ -57,15 +58,42 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
      */
     public function run()
     {
+        $front = $this->getResource('FrontController');
+        $default = $front->getDefaultModule();
+        if (null === $front->getControllerDirectory($default)) {
+            throw new Zend_Application_Bootstrap_Exception(
+                'No default controller directory registered with front controller'
+            );
+        }
+
+        $front->setParam('bootstrap', $this);
+
+
         // Load service container if not cached or if we want to cache and cache doesn't esist
         if(!$this->_doCache() || ($this->_doCache() && !$this->_cacheExists())) {
-            $this->_loadControllersInContainer();
+            $this->_loadControllers();
+            $repositoryDefinitionPass = new RepositoryDefinitionPass();
+            $repositoryDefinitionPass->process($this->getContainer());
         }
         // Cache loaded service container if we want to cache and cache doesn't already exist
         if($this->_doCache() && !$this->_cacheExists()) {
             $this->_cacheContainer();
         }
-        parent::run();
+
+        $this->_loadHttpContext();
+        $container = $this->getContainer();
+        if (isset($container->doctrine2)) {
+            $container->set('doctrine.orm.entity_manager', $container->doctrine2);
+        }
+
+        $request = $container->get('zend.controller.request');
+        $response = $container->get('zend.controller.response');
+
+
+        $response = $front->dispatch($request, $response);
+        if ($front->returnResponse()) {
+            return $response;
+        }
     }
 
     /**
@@ -99,6 +127,9 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         return parent::getContainer();
     }
 
+    /**
+     * Autoload annotations through Doctrine Common's AnnotationRegistry.
+     */
     protected function _autoloadAnnotations()
     {
         AnnotationRegistry::registerAutoloadNamespace('LoSo\LosoBundle\DependencyInjection\Annotations');
@@ -186,7 +217,7 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
      *
      * @return void
      */
-    protected function _loadControllersInContainer()
+    protected function _loadControllers()
     {
         $container = $this->getContainer();
 
@@ -197,6 +228,22 @@ class LoSo_Zend_Application_Bootstrap_SymfonyContainerBootstrap extends Zend_App
         foreach ($controllerDirectories as $controllerDirectory) {
             $loader->load($controllerDirectory);
         }
+    }
+
+    /**
+     * Load HTTP context into the service container.
+     *
+     * @return void
+     */
+    protected function _loadHttpContext()
+    {
+        $container = $this->getContainer();
+        $request = new Zend_Controller_Request_Http();
+        $response = new Zend_Controller_Response_Http();
+        $params = array('bootstrap' => $this);
+        $container->set('zend.controller.request', $request);
+        $container->set('zend.controller.response', $response);
+        $container->set('zend.controller.params', $params);
     }
 
     /**

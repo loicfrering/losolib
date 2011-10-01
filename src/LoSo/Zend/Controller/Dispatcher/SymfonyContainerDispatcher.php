@@ -68,9 +68,6 @@ class LoSo_Zend_Controller_Dispatcher_SymfonyContainerDispatcher extends Zend_Co
          * throught the container
          */
         if(null !== $container && $container->has(lcfirst($controllerId))) {
-            $container->set('zend.controller.request', $request);
-            $container->set('zend.controller.response', $this->getResponse());
-            $container->set('zend.controller.params', $this->getParams());
             $controller = $container->get($controllerId);
             if(!$controller instanceof LoSo_Zend_Controller_Action) {
                 throw new LoSo_Exception('Controller from Symfony Container "' . $className . '" is not an instance of LoSo_Zend_Controller_Action');

@@ -1,10 +1,11 @@
 <?php
 use LoSo\LosoBundle\DependencyInjection\Annotations as DI;
+use LoSo\LosoBundle\Repository\GenericRepository;
 
 /**
- * @DI\Service
+ * @DI\Repository("Application_Model_User")
  */
-class Application_Repository_Doctrine_UserRepository extends LoSo_Doctrine_ORM_Tools_Repository_GenericRepository
+class Application_Repository_Doctrine_UserRepository extends GenericRepository
 {
     protected $entityName = 'Application_Model_User';
 
