@@ -45,4 +45,9 @@ abstract class LoSo_Doctrine_ORM_Tools_Repository_GenericRepository extends \Doc
     {
         $this->_em->flush();
     }
+
+    public function clear()
+    {
+        $this->_em->clear();
+    }
 }
